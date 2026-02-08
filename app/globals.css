@@ -122,3 +122,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+@utility primary-gradient {
+  /* indigo-500/60 -> fuchsia-500/60 */
+  background-image: linear-gradient(129deg, rgba(99, 102, 241, 0.6) 20%, rgba(217, 70, 239, 0.6) 100%);
+}
+
+@utility primary-text-gradient {
+  /* indigo-500/60 -> fuchsia-500/60 */
+  background-image: linear-gradient(129deg, rgba(99, 102, 241, 0.6) 20%, rgba(217, 70, 239, 0.6) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
