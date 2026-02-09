@@ -7,11 +7,11 @@ export default function Home() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.05)_0%,transparent_70%)]" />
 
       <main className="flex flex-col gap-6 items-center text-center max-w-2xl z-10">
-        <h1 className="text-5xl sm:text-7xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+        <h1 className="text-5xl sm:text-7xl font-semibold font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
           TagalogAI
         </h1>
         <div className="h-1 w-20 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-full shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
-        <p className="text-xl sm:text-2xl text-zinc-400 font-light">
+        <p className="text-xl sm:text-2xl text-zinc-400">
           Please be patient as we are still in development.
         </p>
       </main>
