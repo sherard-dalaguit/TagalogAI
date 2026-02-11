@@ -1,20 +1,18 @@
 import {NextResponse} from "next/server";
 import dbConnect from "@/lib/mongoose";
-import VoiceSession, {ITranscriptMessage} from "@/database/voice-session.model";
+import VoiceSession from "@/database/voice-session.model";
 import {auth} from "@/auth";
 
 export async function POST(request: Request): Promise<NextResponse> {
   await dbConnect();
 
-  const { userId, mode, scenario, correctionIntensity, taglishMode } = await request.json();
-
-  const transcript: ITranscriptMessage[] = []; // placeholder for now
+  const { userId, mode, scenario, correctionIntensity, taglishMode, transcript } = await request.json();
 
   const voiceSession = await VoiceSession.create({
     userId,
     mode,
     scenario,
-    transcript,
+    transcript: transcript || [],
     correctionIntensity,
     taglishMode,
   });

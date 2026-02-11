@@ -1,22 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-
-interface VoiceSession {
-  _id: string;
-  userId: string;
-  mode: string;
-  scenario: string;
-  correctionIntensity: string;
-  taglishMode: boolean;
-  createdAt: string;
-}
+import {ITranscriptMessage, IVoiceSessionDoc} from "@/database/voice-session.model";
 
 export default function PracticeTestingPage() {
-  const [sessions, setSessions] = useState<VoiceSession[]>([]);
+  const [sessions, setSessions] = useState<IVoiceSessionDoc[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [user, setUser] = useState<any>(null);
+
+  // Transcript testing state
+  const [transcript, setTranscript] = useState<ITranscriptMessage[]>([]);
+  const [userText, setUserText] = useState("");
+  const [aiText, setAiText] = useState("");
 
   // Fetch user preferences and initial sessions
   useEffect(() => {
@@ -61,6 +57,20 @@ export default function PracticeTestingPage() {
     }
   };
 
+  const addTranscriptMessage = (speaker: "user" | "ai", text: string) => {
+    if (!text.trim()) return;
+    
+    const newMessage: ITranscriptMessage = {
+      order: transcript.length,
+      speaker,
+      text: text.trim(),
+    };
+    
+    setTranscript([...transcript, newMessage]);
+    if (speaker === "user") setUserText("");
+    else setAiText("");
+  };
+
   const createSession = async () => {
     if (!user) {
       setMessage("User not loaded. Please log in.");
@@ -78,14 +88,16 @@ export default function PracticeTestingPage() {
           scenario: "ordering_food",
           correctionIntensity: user.preferences?.correctionIntensity || "moderate",
           taglishMode: user.preferences?.taglishMode ?? false,
+          transcript: transcript,
         }),
       });
       const data = await res.json();
       if (data.success) {
         setMessage("Session created successfully");
-        fetchSessions();
+        setTranscript([]);
+        await fetchSessions();
       } else {
-        setMessage("Failed to create session");
+        setMessage("Failed to create session: " + data.message);
       }
     } catch (err) {
       setMessage("Error creating session");
@@ -103,7 +115,7 @@ export default function PracticeTestingPage() {
       const data = await res.json();
       if (data.success) {
         setMessage("Session deleted successfully");
-        fetchSessions();
+        await fetchSessions();
       } else {
         setMessage("Failed to delete session");
       }
@@ -135,6 +147,76 @@ export default function PracticeTestingPage() {
     <div className="p-8 bg-zinc-950 min-h-screen text-white">
       <h1 className="text-2xl font-bold mb-4">API Testing Page (Voice Sessions)</h1>
       
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded">
+          <h2 className="text-lg font-semibold mb-3 text-blue-400">User Speaking</h2>
+          <div className="flex gap-2">
+            <input 
+              type="text" 
+              value={userText}
+              onChange={(e) => setUserText(e.target.value)}
+              placeholder="User message..."
+              className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              onKeyDown={(e) => e.key === 'Enter' && addTranscriptMessage("user", userText)}
+            />
+            <button 
+              onClick={() => addTranscriptMessage("user", userText)}
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded">
+          <h2 className="text-lg font-semibold mb-3 text-purple-400">AI Speaking</h2>
+          <div className="flex gap-2">
+            <input 
+              type="text" 
+              value={aiText}
+              onChange={(e) => setAiText(e.target.value)}
+              placeholder="AI message..."
+              className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
+              onKeyDown={(e) => e.key === 'Enter' && addTranscriptMessage("ai", aiText)}
+            />
+            <button 
+              onClick={() => addTranscriptMessage("ai", aiText)}
+              className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-sm font-medium"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-8 p-4 bg-zinc-900 border border-zinc-800 rounded">
+        <h2 className="text-lg font-semibold mb-3">Transcript Preview</h2>
+        {transcript.length === 0 ? (
+          <p className="text-zinc-500 text-sm">No messages added yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {transcript.map((msg, i) => (
+              <div key={i} className={`flex ${msg.speaker === 'user' ? 'justify-start' : 'justify-end'}`}>
+                <div className={`max-w-[80%] px-3 py-2 rounded text-sm ${
+                  msg.speaker === 'user' 
+                    ? 'bg-blue-900/30 border border-blue-500/30 text-blue-100' 
+                    : 'bg-purple-900/30 border border-purple-500/30 text-purple-100'
+                }`}>
+                  <span className="font-bold mr-2 uppercase text-[10px] opacity-70">{msg.speaker}:</span>
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            <button 
+              onClick={() => setTranscript([])}
+              className="mt-4 text-xs text-zinc-500 hover:text-zinc-300 underline"
+            >
+              Clear Transcript
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="flex gap-4 mb-6">
         <button 
           onClick={createSession}
@@ -172,21 +254,31 @@ export default function PracticeTestingPage() {
           <p className="text-zinc-500">No sessions found.</p>
         ) : (
           sessions.map((session) => (
-            <div key={session._id} className="p-4 bg-zinc-900 border border-zinc-800 rounded flex justify-between items-center">
+            <div key={session._id.toString()} className="p-4 bg-zinc-900 border border-zinc-800 rounded flex justify-between items-center">
               <div>
                 <p className="font-medium">{session.scenario} ({session.mode})</p>
-                <p className="text-xs text-zinc-500">ID: {session._id}</p>
+                <p className="text-xs text-zinc-500">ID: {session._id.toString()}</p>
                 <p className="text-xs text-zinc-500">Prefs: {session.correctionIntensity}, Taglish: {String(session.taglishMode)}</p>
+                {session.transcript && session.transcript.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase">Transcript:</p>
+                    {session.transcript.map((msg, idx) => (
+                      <p key={idx} className="text-[10px] text-zinc-400 line-clamp-1">
+                        <span className="font-semibold uppercase">{msg.speaker}:</span> {msg.text}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <button 
-                  onClick={() => getSession(session._id)}
+                  onClick={() => getSession(session._id.toString())}
                   className="text-xs bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded"
                 >
                   Details
                 </button>
                 <button 
-                  onClick={() => deleteSession(session._id)}
+                  onClick={() => deleteSession(session._id.toString())}
                   className="text-xs bg-red-900/50 hover:bg-red-900 text-red-200 px-2 py-1 rounded"
                 >
                   Delete
