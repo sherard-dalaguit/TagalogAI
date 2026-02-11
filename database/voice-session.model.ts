@@ -22,6 +22,9 @@ export interface IVoiceSession {
 
   startedAt?: Date;
   endedAt?: Date;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const TranscriptMessageSchema = new Schema<ITranscriptMessage>(
