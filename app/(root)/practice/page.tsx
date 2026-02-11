@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {ITranscriptMessage, IVoiceSessionDoc} from "@/database/voice-session.model";
 
 export default function PracticeTestingPage() {
+  const router = useRouter();
   const [sessions, setSessions] = useState<IVoiceSessionDoc[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -79,6 +81,7 @@ export default function PracticeTestingPage() {
 
     setLoading(true);
     try {
+      // 1. create the session
       const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,15 +95,34 @@ export default function PracticeTestingPage() {
         }),
       });
       const data = await res.json();
+      
       if (data.success) {
-        setMessage("Session created successfully");
-        setTranscript([]);
-        await fetchSessions();
+        const sessionId = data.data._id;
+        setMessage("Session created. Attaching feedback...");
+
+        // 2. attach feedback
+        const feedbackRes = await fetch(`/api/feedback/${sessionId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user._id }),
+        });
+        const feedbackData = await feedbackRes.json();
+
+        if (feedbackData.success) {
+          setMessage("Session and feedback created. Redirecting...");
+          setTranscript([]);
+          
+          // 3. redirect to summary page
+          router.push(`/sessions/${sessionId}`);
+        } else {
+          setMessage("Failed to attach feedback: " + feedbackData.message);
+        }
       } else {
         setMessage("Failed to create session: " + data.message);
       }
     } catch (err) {
-      setMessage("Error creating session");
+      setMessage("Error in createSession flow");
+      console.error(err);
     } finally {
       setLoading(false);
     }
