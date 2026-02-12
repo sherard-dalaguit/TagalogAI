@@ -5,7 +5,9 @@ import FeedbackSummary, {IFeedbackSummaryDoc} from "@/database/feedback-summary.
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const { id } = await params;
   const body = await request.json();
-  const { userId } = await body;
+  const { userId, transcript } = await body;
+
+  console.log('Transcript used in /api/feedback/[id]: ', transcript)
 
   // const feedback = await runAIReview()
   // runAIReview() will be implemented in the feedback section
