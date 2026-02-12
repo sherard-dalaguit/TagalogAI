@@ -72,7 +72,7 @@ export default function SessionSummaryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 md:p-12 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-zinc-950 text-white p-6 md:p-12 mx-auto">
       <div className="mb-10 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold mb-2">Session Summary</h1>
