@@ -8,7 +8,6 @@ export default function PracticePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -18,26 +17,8 @@ export default function PracticePage() {
         const userData = await userRes.json();
         if (userData.success) {
           setUser(userData.data);
-          
-          // 2. Automatically create a session for the practice
-          const sessionRes = await fetch("/api/sessions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: userData.data._id,
-              mode: "conversation",
-              scenario: "daily_life",
-              transcript: [],
-              correctionIntensity: userData.data.preferences?.correctionIntensity || "moderate",
-              taglishMode: userData.data.preferences?.taglishMode ?? false,
-            }),
-          });
-          const sessionData = await sessionRes.json();
-          if (sessionData.success) {
-            setSessionId(sessionData.data._id);
-          }
         } else {
-          router.push("/api/auth/signin");
+          router.push("/log-in");
         }
       } catch (err) {
         console.error("Initialization error:", err);
@@ -58,7 +39,7 @@ export default function PracticePage() {
     );
   }
 
-  if (!user || !sessionId) {
+  if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] flex-col gap-4">
         <p className="text-red-400">Failed to initialize practice session.</p>
@@ -82,12 +63,7 @@ export default function PracticePage() {
       </div>
 
       <div className="w-full max-w-4xl mx-auto">
-        <Agent 
-          userName={user.name} 
-          userId={user._id}
-          userImage={user.image}
-          sessionId={sessionId} 
-        />
+        <Agent user={user} />
       </div>
     </div>
   );

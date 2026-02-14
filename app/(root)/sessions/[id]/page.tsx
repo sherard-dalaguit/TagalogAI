@@ -93,6 +93,33 @@ export default function SessionSummaryPage() {
         <div className="lg:col-span-2 space-y-8">
           {feedback ? (
             <>
+              {/* Overview Section */}
+              <section className="bg-gradient-to-br from-indigo-900/20 to-zinc-900 border border-indigo-500/20 rounded-2xl p-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <p className="text-xs font-bold text-indigo-400 uppercase tracking-[0.2em] mb-1">Current Assessment</p>
+                    <h2 className="text-3xl font-black text-white">{feedback.overview.estimatedLevel}</h2>
+                  </div>
+                  <div className="flex gap-8">
+                    <div className="text-center">
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Confidence</p>
+                      <p className="text-xl font-mono text-zinc-200">{Math.round(feedback.overview.confidence * 100)}%</p>
+                    </div>
+                    <div className="h-10 w-px bg-zinc-800 hidden md:block" />
+                    <div>
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Fluency Notes</p>
+                      <div className="flex flex-wrap gap-2">
+                        {feedback.overview.fluencyNotes.map((note, i) => (
+                          <span key={i} className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full border border-zinc-700">
+                            {note}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               {/* Highlights */}
               <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -113,14 +140,23 @@ export default function SessionSummaryPage() {
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <span className="text-amber-400">🎯</span> Areas for Improvement
                 </h2>
-                <ul className="space-y-3">
+                <div className="space-y-4">
                   {feedback.topRecurringMistakes.map((m, i) => (
-                    <li key={i} className="flex gap-3 text-zinc-300 text-sm leading-relaxed">
-                      <span className="text-amber-500 mt-1">•</span>
-                      {m}
-                    </li>
+                    <div key={i} className="bg-zinc-950/30 rounded-xl p-4 border border-zinc-800/50">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">
+                          {m.category}
+                        </span>
+                      </div>
+                      <p className="text-zinc-200 font-medium mb-1">{m.mistake}</p>
+                      <p className="text-sm text-zinc-500 mb-3">{m.why}</p>
+                      <div className="bg-zinc-900/80 rounded-lg p-3 border border-zinc-800">
+                        <p className="text-[10px] font-bold text-zinc-600 uppercase mb-1">Recommended Fix</p>
+                        <p className="text-zinc-300 italic">{m.exampleFix}</p>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </section>
 
               {/* Improved Phrases */}
@@ -136,12 +172,39 @@ export default function SessionSummaryPage() {
                         <p className="text-zinc-400 italic">"{p.original}"</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xs font-bold text-blue-400 uppercase tracking-wider">Try this instead</p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs font-bold text-blue-400 uppercase tracking-wider">Try this instead</p>
+                          <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">
+                            {p.category}
+                          </span>
+                        </div>
                         <p className="text-blue-100 font-medium text-lg">"{p.improved}"</p>
                       </div>
                       <p className="text-sm text-zinc-500 bg-zinc-950/50 p-3 rounded-lg">
                         {p.explanation}
                       </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Next Practice Section */}
+              <section className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-6">
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-300">
+                  <span className="text-indigo-400">🚀</span> Your Next Steps
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {feedback.nextPractice.map((np, i) => (
+                    <div key={i} className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl space-y-3">
+                      <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest">{np.goal}</p>
+                      <p className="text-sm text-zinc-300">{np.drill}</p>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {np.examples.map((ex, j) => (
+                          <span key={j} className="text-[10px] bg-zinc-950 text-zinc-500 border border-zinc-800 px-2 py-1 rounded italic">
+                            "{ex}"
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import Image from "next/image";
 import {cn} from "@/lib/utils";
+import {IUserDoc} from "@/database/user.model";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -17,19 +18,17 @@ interface SavedMessage {
 }
 
 interface AgentProps {
-  userName: string;
-  userId: string;
-  userImage: string;
-  sessionId: string;
+  user: IUserDoc;
 }
 
-const Agent = ({ userName, userId, userImage, sessionId }: AgentProps) => {
+const Agent = ({ user }: AgentProps) => {
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
-  console.log('Agent received userImage:', userImage)
+  console.log('Agent received userImage:', user.image)
 
   useEffect(() => {
     const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
@@ -96,7 +95,7 @@ const Agent = ({ userName, userId, userImage, sessionId }: AgentProps) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId,
+        userId: user._id,
         transcript: messages
       }),
     });
@@ -114,12 +113,34 @@ const Agent = ({ userName, userId, userImage, sessionId }: AgentProps) => {
     if (callStatus === CallStatus.FINISHED) {
       handleGenerateFeedback(messages);
     }
-  }, [messages, callStatus, userId, sessionId])
+  }, [messages, callStatus, user._id, sessionId])
 
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
 
-    await vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID)
+    try {
+      const sessionRes = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user._id,
+          transcript: [],
+          correctionIntensity: user.preferences.correctionIntensity,
+          taglishMode: user.preferences.taglishMode,
+        }),
+      });
+      const sessionData = await sessionRes.json();
+      if (sessionData.success) {
+        setSessionId(sessionData.data._id);
+        await vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID);
+      } else {
+        console.error("Failed to create session");
+        setCallStatus(CallStatus.INACTIVE);
+      }
+    } catch (err) {
+      console.error("Error starting call:", err);
+      setCallStatus(CallStatus.INACTIVE);
+    }
   }
 
   const handleDisconnect = async () => {
@@ -152,9 +173,9 @@ const Agent = ({ userName, userId, userImage, sessionId }: AgentProps) => {
 
         <div className="bg-linear-to-b from-[#4B4D4F] to-[#4B4D4F33] p-0.5 rounded-2xl flex-1 sm:basis-1/2 w-full h-100 max-md:hidden">
           <div className="flex flex-col gap-2 justify-center items-center p-7 bg-linear-to-b from-[#1A1C20] to-[#08090D] rounded-2xl min-h-full">
-            {userImage ? (
+            {user.image ? (
               <Image
-                src={userImage}
+                src={user.image}
                 alt="user avatar"
                 width={540}
                 height={540}
@@ -162,11 +183,11 @@ const Agent = ({ userName, userId, userImage, sessionId }: AgentProps) => {
               />
             ) : (
               <div className="flex items-center justify-center bg-zinc-800 rounded-full size-30">
-                <span className="text-4xl text-zinc-400">{userName?.charAt(0) || "U"}</span>
+                <span className="text-4xl text-zinc-400">{user.name?.charAt(0) || "U"}</span>
               </div>
             )}
 
-            <h3 className="text-center text-[#CAC5FE] mt-5">{userName}</h3>
+            <h3 className="text-center text-[#CAC5FE] mt-5">{user.name}</h3>
           </div>
         </div>
       </div>
