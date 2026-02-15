@@ -9,6 +9,16 @@ import { CalendarDays, ArrowRight, Sparkles, Mic, Flame, History, ChevronRight }
 interface VoiceSession {
   _id: string;
   createdAt: string;
+  mode?: string;
+  scenario?: string;
+}
+
+function formatDisplayName(str: string | undefined) {
+  if (!str) return "Conversation";
+  return str
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function formatShortDate(date: string) {
@@ -31,6 +41,7 @@ function formatRelative(date: string) {
 
 const Dashboard = () => {
   const [recentSessions, setRecentSessions] = useState<VoiceSession[]>([]);
+  const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,8 +52,7 @@ const Dashboard = () => {
 
         if (data.success) {
           const sorted = data.data
-            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 8);
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
           setRecentSessions(sorted);
         }
@@ -56,6 +66,7 @@ const Dashboard = () => {
     fetchSessions();
   }, []);
 
+  const displayedSessions = showAll ? recentSessions : recentSessions.slice(0, 8);
   const lastSession = recentSessions[0];
   const totalSessionsLoaded = recentSessions.length;
   const lastPracticedLabel = lastSession ? formatRelative(lastSession.createdAt) : "Not yet";
@@ -243,9 +254,15 @@ const Dashboard = () => {
       <section className="space-y-5">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-white">Recent Sessions</h2>
-          <Button variant="link" className="text-[#A39DFF] p-0">
-            View all
-          </Button>
+          {recentSessions.length > 8 && (
+            <Button
+              variant="link"
+              className="text-[#A39DFF] p-0"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? "View less" : "View all"}
+            </Button>
+          )}
         </div>
 
         {loading ? (
@@ -254,9 +271,9 @@ const Dashboard = () => {
               <div key={i} className="h-44 rounded-2xl bg-white/5 border border-white/10 animate-pulse" />
             ))}
           </div>
-        ) : recentSessions.length > 0 ? (
+        ) : displayedSessions.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {recentSessions.map((session) => (
+            {displayedSessions.map((session) => (
               <Card
                 key={session._id}
                 className="bg-[#0B0C10] border-white/10 hover:border-[#A39DFF]/35 transition-all rounded-2xl hover:-translate-y-0.5"
@@ -264,12 +281,14 @@ const Dashboard = () => {
                 <CardHeader className="p-4 pb-2">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-[10px] uppercase tracking-wider text-[#A39DFF] font-semibold bg-[#A39DFF]/10 px-2 py-0.5 rounded">
-                      Conversation
+                      {formatDisplayName(session.mode)}
                     </span>
                     <span className="text-[10px] text-[#9CA3AF]">{formatShortDate(session.createdAt)}</span>
                   </div>
 
-                  <CardTitle className="text-lg text-white">Conversation</CardTitle>
+                  <CardTitle className="text-lg text-white">
+                    {session.scenario ? formatDisplayName(session.scenario) : "General Session"}
+                  </CardTitle>
                   <CardDescription className="text-[#9CA3AF]">{formatRelative(session.createdAt)}</CardDescription>
                 </CardHeader>
 
