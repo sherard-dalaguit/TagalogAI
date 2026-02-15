@@ -15,11 +15,29 @@ enum CallStatus {
 interface SavedMessage {
   role: 'user' | 'system' | 'assistant';
   content: string;
+  ts: number;
 }
 
 interface AgentProps {
   user: IUserDoc;
 }
+
+function mergeMessages(msgs: SavedMessage[]) {
+  const out: SavedMessage[] = [];
+  const MERGE_WINDOW_MS = 1200;
+
+  for (const m of msgs) {
+    const last = out[out.length - 1];
+    if (last && last.role === m.role && (m.ts - last.ts) < MERGE_WINDOW_MS) {
+      last.ts = m.ts;
+      last.content = `${last.content} ${m.content}`.replace(/\s+/g, ' ').trim();
+    } else {
+      out.push({ ...m });
+    }
+  }
+  return out;
+}
+
 
 const Agent = ({ user }: AgentProps) => {
   const router = useRouter();
@@ -28,19 +46,39 @@ const Agent = ({ user }: AgentProps) => {
   const [messages, setMessages] = useState<SavedMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
+  const MERGE_WINDOW_MS = 1800;
+
   console.log('Agent received userImage:', user.image)
 
   useEffect(() => {
     const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
     const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
 
-    const onMessage = (message: Message) => {
-      if (message.type === 'transcript' && message.transcriptType === 'final') {
-        const newMessage: SavedMessage = { role: message.role as any, content: message.transcript };
+    const onMessage = (message: any) => {
+      if (message.type !== 'transcript') return;
+      if (message.transcriptType !== 'final') return;
 
-        setMessages((prev) => [...prev, newMessage]);
-      }
-    }
+      const role = message.role as SavedMessage['role'];
+      const text = (message.transcript ?? '').trim();
+      if (!text) return;
+
+      const now = Date.now();
+
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+
+        if (last && last.role === role && (now - last.ts) < MERGE_WINDOW_MS) {
+          const merged = {
+            ...last,
+            ts: now,
+            content: `${last.content} ${text}`.replace(/\s+/g, ' ').trim(),
+          };
+          return [...prev.slice(0, -1), merged];
+        }
+
+        return [...prev, { role, content: text, ts: now }];
+      });
+    };
 
     const onSpeechStart = () => setIsSpeaking(true);
     const onSpeechEnd = () => setIsSpeaking(false);
@@ -73,12 +111,14 @@ const Agent = ({ user }: AgentProps) => {
 
     console.log('Generating feedback for', messages.length, 'messages');
 
+    const merged = mergeMessages(messages);
+
     // 1. Update the session with the transcript
     const sessionRes = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        transcript: messages.map((m, i) => ({
+        transcript: merged.map((m, i) => ({
           order: i,
           speaker: m.role === 'assistant' ? 'ai' : 'user',
           text: m.content
