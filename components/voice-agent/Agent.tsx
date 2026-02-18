@@ -46,13 +46,84 @@ const Agent = ({ user }: AgentProps) => {
   const [messages, setMessages] = useState<SavedMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
+  const [dailyTimeUsed, setDailyTimeUsed] = useState<number>(0);
+  const [dailyLimit, setDailyLimit] = useState<number>(600); // Default 10 minutes
+  const [callStartTime, setCallStartTime] = useState<number | null>(null);
+  const [currentCallDuration, setCurrentCallDuration] = useState<number>(0);
+
   const MERGE_WINDOW_MS = 1800;
 
   console.log('Agent received userImage:', user.image)
 
   useEffect(() => {
-    const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
-    const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
+    const fetchUsage = async () => {
+      try {
+        const res = await fetch("/api/user/daily-usage");
+        const data = await res.json();
+        if (data.success) {
+          setDailyTimeUsed(data.data.totalSeconds);
+          setDailyLimit(data.data.dailyLimitSeconds);
+        }
+      } catch (err) {
+        console.error("Error fetching daily usage:", err);
+      }
+    };
+    fetchUsage();
+  }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    let syncInterval: NodeJS.Timeout;
+
+    if (callStatus === CallStatus.ACTIVE && callStartTime && sessionId) {
+      interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+        setCurrentCallDuration(elapsed);
+
+        if (dailyTimeUsed + elapsed >= dailyLimit) {
+          handleDisconnect();
+        }
+      }, 1000);
+
+      // Periodic sync to server every 15 seconds
+      syncInterval = setInterval(async () => {
+        const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+        try {
+          await fetch(`/api/sessions/${sessionId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              durationSeconds: elapsed,
+            }),
+          });
+        } catch (err) {
+          console.error("Error syncing duration:", err);
+        }
+      }, 15000);
+    }
+    return () => {
+      clearInterval(interval);
+      clearInterval(syncInterval);
+    };
+  }, [callStatus, callStartTime, dailyTimeUsed, dailyLimit, sessionId]);
+
+  useEffect(() => {
+    const onCallStart = () => {
+      setCallStatus(CallStatus.ACTIVE);
+      setCallStartTime(Date.now());
+    };
+    const onCallEnd = () => {
+      setCallStatus(prevStatus => {
+        if (prevStatus === CallStatus.FINISHED) return prevStatus;
+        
+        // Use a functional update to get the latest currentCallDuration
+        // Wait, currentCallDuration is also a state, so we can't easily access it here
+        // without it being a dependency. But onCallEnd is inside a useEffect with [] dependency.
+        // This is a classic React problem.
+        return CallStatus.FINISHED;
+      });
+      setCallStartTime(null);
+    };
 
     const onMessage = (message: any) => {
       if (message.type !== 'transcript') return;
@@ -103,8 +174,8 @@ const Agent = ({ user }: AgentProps) => {
   }, [])
 
   const handleGenerateFeedback = async (messages: SavedMessage[]) => {
-    if (messages.length === 0) {
-      console.log('No messages to generate feedback for.');
+    if (messages.length === 0 && currentCallDuration === 0) {
+      console.log('No messages or duration to generate feedback for.');
       router.push('/practice');
       return;
     }
@@ -113,7 +184,7 @@ const Agent = ({ user }: AgentProps) => {
 
     const merged = mergeMessages(messages);
 
-    // 1. Update the session with the transcript
+    // 1. Update the session with the transcript and duration
     const sessionRes = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -122,7 +193,9 @@ const Agent = ({ user }: AgentProps) => {
           order: i,
           speaker: m.role === 'assistant' ? 'ai' : 'user',
           text: m.content
-        }))
+        })),
+        endedAt: new Date(),
+        durationSeconds: currentCallDuration,
       }),
     });
 
@@ -150,10 +223,14 @@ const Agent = ({ user }: AgentProps) => {
   }
 
   useEffect(() => {
-    if (callStatus === CallStatus.FINISHED) {
+    if (callStatus === CallStatus.FINISHED && currentCallDuration > 0) {
+      setDailyTimeUsed(prev => prev + currentCallDuration);
+      setCurrentCallDuration(0); // Reset for next potential call in same session
+      handleGenerateFeedback(messages);
+    } else if (callStatus === CallStatus.FINISHED) {
       handleGenerateFeedback(messages);
     }
-  }, [messages, callStatus, user._id, sessionId])
+  }, [callStatus]) // Only trigger on status change
 
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
@@ -184,16 +261,33 @@ const Agent = ({ user }: AgentProps) => {
   }
 
   const handleDisconnect = async () => {
+    if (callStatus === CallStatus.FINISHED) return;
     setCallStatus(CallStatus.FINISHED);
-
     await vapi.stop();
   }
+
+  const remainingSeconds = Math.max(0, dailyLimit - dailyTimeUsed - currentCallDuration);
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const latestMessage = messages[messages.length - 1]?.content;
   const isCallInactiveOrFinished = callStatus === CallStatus.INACTIVE || callStatus === CallStatus.FINISHED;
 
   return (
     <>
+      <div className="w-full flex justify-center mb-6">
+        <div className="bg-zinc-900/50 border border-white/10 rounded-full px-4 py-1.5 flex items-center gap-2">
+          <div className={cn("size-2 rounded-full", remainingSeconds < 60 ? "bg-red-500 animate-pulse" : "bg-emerald-500")} />
+          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Time Remaining:</span>
+          <span className={cn("text-sm font-bold tabular-nums", remainingSeconds < 60 ? "text-red-400" : "text-white")}>
+            {formatTime(remainingSeconds)}
+          </span>
+        </div>
+      </div>
+
       <div className="flex sm:flex-row flex-col gap-10 items-center justify-between w-full">
         <div className="flex items-center justify-center flex-col gap-2 p-7 h-100 bg-linear-to-b from-[#171532] to-[#08090D] rounded-lg border-2 border-[#A39DFF]/50 flex-1 sm:basis-1/2 w-full">
           <div className="z-10 flex items-center justify-center bg-linear-to-l from-[#FFFFFF] to-[#CAC5FE] rounded-full size-30 relative">
@@ -244,10 +338,17 @@ const Agent = ({ user }: AgentProps) => {
 
       <div className="w-full flex justify-center mt-10">
         {callStatus !== 'ACTIVE' ? (
-          <button className="relative inline-block px-7 py-3 font-bold text-sm leading-5 text-white transition-colors duration-150 bg-[#10b981] border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-[#059669] hover:bg-[#059669] min-w-28 cursor-pointer items-center justify-center overflow-visible" onClick={handleCall}>
+          <button 
+            disabled={remainingSeconds <= 0}
+            className={cn(
+              "relative inline-block px-7 py-3 font-bold text-sm leading-5 text-white transition-colors duration-150 border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl min-w-28 cursor-pointer items-center justify-center overflow-visible",
+              remainingSeconds <= 0 ? "bg-zinc-700 cursor-not-allowed" : "bg-[#10b981] active:bg-[#059669] hover:bg-[#059669]"
+            )}
+            onClick={handleCall}
+          >
             <span className={cn('absolute bg-[#10b981] h-[85%] w-[65%] animate-ping rounded-full opacity-75', callStatus !== 'CONNECTING' && 'hidden')} />
 
-            {isCallInactiveOrFinished ? 'Call' : '. . .'}
+            {remainingSeconds <= 0 ? 'Limit Reached' : isCallInactiveOrFinished ? 'Call' : '. . .'}
           </button>
         ) : (
           <button className="inline-block px-7 py-3 text-sm font-bold leading-5 text-white transition-colors duration-150 bg-[#ef4444] border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-[#dc2626] hover:bg-[#dc2626] min-w-28" onClick={handleDisconnect}>

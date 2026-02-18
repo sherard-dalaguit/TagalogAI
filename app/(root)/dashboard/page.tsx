@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, ArrowRight, Sparkles, Mic, Flame, History, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface VoiceSession {
   _id: string;
@@ -43,6 +44,22 @@ const Dashboard = () => {
   const [recentSessions, setRecentSessions] = useState<VoiceSession[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dailyUsage, setDailyUsage] = useState({ totalSeconds: 0, dailyLimitSeconds: 600 });
+
+  useEffect(() => {
+    const fetchUsage = async () => {
+      try {
+        const res = await fetch("/api/user/daily-usage");
+        const data = await res.json();
+        if (data.success) {
+          setDailyUsage(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching usage:", err);
+      }
+    };
+    fetchUsage();
+  }, []);
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -174,6 +191,17 @@ const Dashboard = () => {
                   <span>
                      Streak <span className="text-white font-semibold">—</span>
                    </span>
+                </div>
+
+                <span className="hidden md:inline-block h-4 w-px bg-white/10" />
+
+                <div className="flex items-center gap-2">
+                  <Mic className="h-4 w-4 text-[#A39DFF]" />
+                  <span>
+                    Daily: <span className={cn("font-semibold", dailyUsage.totalSeconds >= dailyUsage.dailyLimitSeconds ? "text-red-400" : "text-white")}>
+                      {Math.floor(dailyUsage.totalSeconds / 60)}/{Math.floor(dailyUsage.dailyLimitSeconds / 60)} min
+                    </span>
+                  </span>
                 </div>
               </div>
 

@@ -22,6 +22,7 @@ export interface IVoiceSession {
 
   startedAt?: Date;
   endedAt?: Date;
+  durationSeconds?: number;
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -51,8 +52,9 @@ const VoiceSessionSchema = new Schema<IVoiceSession>(
     feedbackSummaryId: { type: Schema.Types.ObjectId, ref: "FeedbackSummary" },
     assessmentId: { type: Types.ObjectId, ref: "Assessment" },
 
-    startedAt: { type: Date },
+    startedAt: { type: Date, default: Date.now },
     endedAt: { type: Date },
+    durationSeconds: { type: Number, default: 0 },
   },
   { timestamps: true }
 )
