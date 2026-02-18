@@ -174,7 +174,7 @@ const SettingsPage = () => {
             </div>
 
             {/* Taglish Mode */}
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
               <div className="space-y-1">
                 <label className="text-white font-medium flex items-center gap-2">
                   <Languages className="h-4 w-4 text-[#A39DFF]" />

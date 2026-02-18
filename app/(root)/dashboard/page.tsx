@@ -97,7 +97,7 @@ const Dashboard = () => {
                   Phase 1 • Speak Naturally
                 </span>
 
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#9CA3AF]">
+                <span className="hidden sm:block items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#9CA3AF]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#9CA3AF]" />
                   Phase 2 • Guided Coaching
                   <span className="ml-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-[#9CA3AF]">
@@ -105,7 +105,7 @@ const Dashboard = () => {
                   </span>
                 </span>
 
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#9CA3AF]">
+                <span className="hidden sm:block items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#9CA3AF]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#9CA3AF]" />
                   Phase 3 • Mastery & Progress
                   <span className="ml-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-[#9CA3AF]">
@@ -118,7 +118,7 @@ const Dashboard = () => {
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
                 {greeting}. <span className="text-[#A39DFF]">Mag-usap tayo</span>
                 <br className="hidden md:block" />
-                sa tunay na Tagalog.
+                {" "}sa tunay na Tagalog.
               </h1>
 
               {/* subtitle */}
@@ -149,7 +149,7 @@ const Dashboard = () => {
               </div>
 
               {/* inline stats UNDER CTAs */}
-              <div className="flex flex-wrap items-center gap-5 pt-3 text-sm text-[#9CA3AF]">
+              <div className="hidden sm:flex flex-wrap items-center gap-5 pt-3 text-sm text-[#9CA3AF]">
                 <div className="flex items-center gap-2">
                   <History className="h-4 w-4 text-[#A39DFF]" />
                   <span>
@@ -178,7 +178,7 @@ const Dashboard = () => {
               </div>
 
               {/* chips */}
-              <div className="mt-2 flex flex-wrap gap-2 text-xs text-[#9CA3AF]">
+              <div className="mt-2 hidden sm:flex flex-wrap gap-2 text-xs text-[#9CA3AF]">
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">End-of-session feedback</span>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Improved phrases</span>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Recurring mistakes</span>

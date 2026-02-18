@@ -211,7 +211,7 @@ const Agent = ({ user }: AgentProps) => {
           <h3 className="text-center text-[#CAC5FE] mt-5">AI Speaker</h3>
         </div>
 
-        <div className="bg-linear-to-b from-[#4B4D4F] to-[#4B4D4F33] p-0.5 rounded-2xl flex-1 sm:basis-1/2 w-full h-100 max-md:hidden">
+        <div className="bg-linear-to-b from-[#4B4D4F] to-[#4B4D4F33] p-0.5 rounded-2xl flex-1 sm:basis-1/2 w-full h-100">
           <div className="flex flex-col gap-2 justify-center items-center p-7 bg-linear-to-b from-[#1A1C20] to-[#08090D] rounded-2xl min-h-full">
             {user.image ? (
               <Image
