@@ -1,9 +1,12 @@
 import React, {ReactNode} from 'react'
 import { Navbar } from '@/components/navigation/navbar'
 import { auth } from '@/auth'
+import {redirect} from "next/navigation";
 
 const RootLayout = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
+
+  if (!session?.user) redirect("/log-in")
 
   return (
     <main className="bg-zinc-950 min-h-screen relative">
