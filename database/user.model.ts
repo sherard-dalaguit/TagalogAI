@@ -7,7 +7,8 @@ export interface IUser {
   preferences: {
     correctionIntensity: "minimal" | "moderate" | "aggressive";
     taglishMode: boolean;
-    preferredTone?: "casual" | "polite" | "playful" | "coach"
+    preferredTone?: "casual" | "polite" | "playful" | "coach";
+    wallpaper: string;
   }
 }
 
@@ -20,11 +21,12 @@ const UserSchema = new Schema<IUser>(
     preferences: {
       correctionIntensity: { type: String, enum: ["minimal", "moderate", "aggressive"], default: "moderate" },
       taglishMode: { type: Boolean, default: false },
-      preferredTone: { type: String, enum: ["casual", "polite", "playful", "coach"], default: "casual" }
+      preferredTone: { type: String, enum: ["casual", "polite", "playful", "coach"], default: "casual" },
+      wallpaper: { type: String, default: "" }
     }
   }
 )
 
-const User = models?.User || model<IUser>("User", UserSchema);
+const User = models.User || model<IUser>("User", UserSchema);
 
 export default User;

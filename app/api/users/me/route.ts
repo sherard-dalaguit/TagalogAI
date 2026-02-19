@@ -30,9 +30,19 @@ export async function PATCH(request: Request) {
     const { preferences } = body;
 
     await dbConnect();
+
+    // Update individual preference fields using dot notation to avoid overwriting 
+    // the entire preferences object and losing existing fields.
+    const update: any = {};
+    if (preferences) {
+      Object.keys(preferences).forEach((key) => {
+        update[`preferences.${key}`] = preferences[key as keyof typeof preferences];
+      });
+    }
+
     const user = await User.findByIdAndUpdate(
       session.user.id,
-      { $set: { preferences } },
+      { $set: update },
       { new: true, runValidators: true }
     );
 

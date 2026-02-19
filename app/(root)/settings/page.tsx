@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   Zap,
   MessageSquare,
-  Languages
+  Languages,
+  Image as ImageIcon,
+  Check
 } from "lucide-react";
 import Link from "next/link";
 
@@ -21,7 +23,23 @@ interface UserPreferences {
   correctionIntensity: "minimal" | "moderate" | "aggressive";
   taglishMode: boolean;
   preferredTone: "casual" | "polite" | "playful" | "coach";
+  wallpaper: string;
 }
+
+const WALLPAPERS = [
+  { id: "none", name: "None", path: "" },
+  { id: "bgc", name: "BGC Night", path: "/backgrounds/bgc_night.jpg" },
+  { id: "bgc_street", name: "BGC High Street 1", path: "/backgrounds/bgc_street.jpg" },
+  { id: "bgc_high_street", name: "BGC High Street 2", path: "/backgrounds/bgc_high_street.jpg" },
+  { id: "cebu", name: "Cebu", path: "/backgrounds/cebu.jpg" },
+  { id: "elnido", name: "El Nido", path: "/backgrounds/el-nido.jpg" },
+  { id: "palawan", name: "Palawan", path: "/backgrounds/palawan.jpg" },
+  { id: "boracay", name: "Boracay", path: "/backgrounds/boracay.jpg" },
+  { id: "bohol", name: "Bohol", path: "/backgrounds/bohol.jpg" },
+  { id: "venice", name: "Venice Mall", path: "/backgrounds/venice_mall.jpg" },
+  { id: "rockwell", name: "Rockwell", path: "/backgrounds/rockwell.jpg" },
+  { id: "uptown_mall", name: "Uptown Mall", path: "/backgrounds/uptown_mall.webp" }
+];
 
 const SettingsPage = () => {
   const router = useRouter();
@@ -34,6 +52,7 @@ const SettingsPage = () => {
     correctionIntensity: "moderate",
     taglishMode: false,
     preferredTone: "casual",
+    wallpaper: "",
   });
 
   useEffect(() => {
@@ -44,7 +63,10 @@ const SettingsPage = () => {
         if (data.success) {
           setUser(data.data);
           if (data.data.preferences) {
-            setPreferences(data.data.preferences);
+            setPreferences((prev) => ({
+              ...prev,
+              ...data.data.preferences,
+            }));
           }
         } else {
           router.push("/log-in");
@@ -216,6 +238,60 @@ const SettingsPage = () => {
                     }`}
                   >
                     {tone.charAt(0).toUpperCase() + tone.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Background Wallpaper */}
+            <div className="space-y-4 pt-4 border-t border-white/5">
+              <div className="space-y-1">
+                <label className="text-white font-medium flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-[#A39DFF]" />
+                  Practice Session Wallpaper
+                </label>
+                <p className="text-xs text-[#9CA3AF]">
+                  Choose a background to display during your voice practice sessions.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {WALLPAPERS.map((wp) => (
+                  <button
+                    key={wp.id}
+                    onClick={() => setPreferences({ ...preferences, wallpaper: wp.path })}
+                    className={`group relative aspect-video rounded-xl overflow-hidden border-2 transition-all ${
+                      preferences.wallpaper === wp.path
+                        ? "border-[#A39DFF] ring-2 ring-[#A39DFF]/20"
+                        : "border-white/10 hover:border-white/30"
+                    }`}
+                  >
+                    {wp.path ? (
+                      <div 
+                        className="absolute inset-0 bg-cover bg-center"
+                        style={{ backgroundImage: `url(${wp.path})` }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
+                        <span className="text-[10px] text-[#9CA3AF]">No Wallpaper</span>
+                      </div>
+                    )}
+                    
+                    <div className={`absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${
+                      preferences.wallpaper === wp.path ? "opacity-100" : ""
+                    }`}>
+                      {preferences.wallpaper === wp.path && (
+                        <div className="bg-[#A39DFF] rounded-full p-1">
+                          <Check className="h-3 w-3 text-[#08090D]" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="absolute bottom-0 left-0 right-0 p-1 bg-black/60 backdrop-blur-sm rounded-b-[10px]">
+                      <p className="text-[10px] text-white font-medium text-center truncate">
+                        {wp.name}
+                      </p>
+                    </div>
                   </button>
                 ))}
               </div>

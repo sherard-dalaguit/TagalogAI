@@ -54,15 +54,27 @@ export default function PracticePage() {
   }
 
   return (
-    <div className="flex flex-col gap-10">
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-10 relative">
+      {user.preferences?.wallpaper && (
+        <div 
+          className="fixed inset-0 z-0 opacity-40 pointer-events-none"
+          style={{ 
+            backgroundImage: `url(${user.preferences.wallpaper})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(8px)'
+          }}
+        />
+      )}
+      
+      <div className="flex flex-col gap-2 relative z-10">
         <h1 className="text-3xl font-bold text-white">Practice Tagalog</h1>
         <p className="text-[#9CA3AF]">
           Speak with our AI agent to improve your Tagalog skills in real-time.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-4xl mx-auto relative z-10">
         <Agent user={user} />
       </div>
     </div>
