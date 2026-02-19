@@ -5,10 +5,21 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, ArrowRight, Sparkles, Mic, Flame, History, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface VoiceSession {
   _id: string;
   createdAt: string;
+  mode?: string;
+  scenario?: string;
+}
+
+function formatDisplayName(str: string | undefined) {
+  if (!str) return "Conversation";
+  return str
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function formatShortDate(date: string) {
@@ -31,7 +42,24 @@ function formatRelative(date: string) {
 
 const Dashboard = () => {
   const [recentSessions, setRecentSessions] = useState<VoiceSession[]>([]);
+  const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dailyUsage, setDailyUsage] = useState({ totalSeconds: 0, dailyLimitSeconds: 600 });
+
+  useEffect(() => {
+    const fetchUsage = async () => {
+      try {
+        const res = await fetch("/api/user/daily-usage");
+        const data = await res.json();
+        if (data.success) {
+          setDailyUsage(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching usage:", err);
+      }
+    };
+    fetchUsage();
+  }, []);
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -41,8 +69,7 @@ const Dashboard = () => {
 
         if (data.success) {
           const sorted = data.data
-            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 8);
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
           setRecentSessions(sorted);
         }
@@ -56,6 +83,7 @@ const Dashboard = () => {
     fetchSessions();
   }, []);
 
+  const displayedSessions = showAll ? recentSessions : recentSessions.slice(0, 8);
   const lastSession = recentSessions[0];
   const totalSessionsLoaded = recentSessions.length;
   const lastPracticedLabel = lastSession ? formatRelative(lastSession.createdAt) : "Not yet";
@@ -86,7 +114,7 @@ const Dashboard = () => {
                   Phase 1 • Speak Naturally
                 </span>
 
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#9CA3AF]">
+                <span className="hidden sm:block items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#9CA3AF]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#9CA3AF]" />
                   Phase 2 • Guided Coaching
                   <span className="ml-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-[#9CA3AF]">
@@ -94,7 +122,7 @@ const Dashboard = () => {
                   </span>
                 </span>
 
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#9CA3AF]">
+                <span className="hidden sm:block items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#9CA3AF]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#9CA3AF]" />
                   Phase 3 • Mastery & Progress
                   <span className="ml-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-[#9CA3AF]">
@@ -107,7 +135,7 @@ const Dashboard = () => {
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
                 {greeting}. <span className="text-[#A39DFF]">Mag-usap tayo</span>
                 <br className="hidden md:block" />
-                sa tunay na Tagalog.
+                {" "}sa tunay na Tagalog.
               </h1>
 
               {/* subtitle */}
@@ -138,7 +166,7 @@ const Dashboard = () => {
               </div>
 
               {/* inline stats UNDER CTAs */}
-              <div className="flex flex-wrap items-center gap-5 pt-3 text-sm text-[#9CA3AF]">
+              <div className="hidden sm:flex flex-wrap items-center gap-5 pt-3 text-sm text-[#9CA3AF]">
                 <div className="flex items-center gap-2">
                   <History className="h-4 w-4 text-[#A39DFF]" />
                   <span>
@@ -164,10 +192,21 @@ const Dashboard = () => {
                      Streak <span className="text-white font-semibold">—</span>
                    </span>
                 </div>
+
+                <span className="hidden md:inline-block h-4 w-px bg-white/10" />
+
+                <div className="flex items-center gap-2">
+                  <Mic className="h-4 w-4 text-[#A39DFF]" />
+                  <span>
+                    Daily: <span className={cn("font-semibold", dailyUsage.totalSeconds >= dailyUsage.dailyLimitSeconds ? "text-red-400" : "text-white")}>
+                      {Math.floor(dailyUsage.totalSeconds / 60)}/{Math.floor(dailyUsage.dailyLimitSeconds / 60)} min
+                    </span>
+                  </span>
+                </div>
               </div>
 
               {/* chips */}
-              <div className="mt-2 flex flex-wrap gap-2 text-xs text-[#9CA3AF]">
+              <div className="mt-2 hidden sm:flex flex-wrap gap-2 text-xs text-[#9CA3AF]">
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">End-of-session feedback</span>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Improved phrases</span>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Recurring mistakes</span>
@@ -243,9 +282,15 @@ const Dashboard = () => {
       <section className="space-y-5">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-white">Recent Sessions</h2>
-          <Button variant="link" className="text-[#A39DFF] p-0">
-            View all
-          </Button>
+          {recentSessions.length > 8 && (
+            <Button
+              variant="link"
+              className="text-[#A39DFF] p-0"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? "View less" : "View all"}
+            </Button>
+          )}
         </div>
 
         {loading ? (
@@ -254,9 +299,9 @@ const Dashboard = () => {
               <div key={i} className="h-44 rounded-2xl bg-white/5 border border-white/10 animate-pulse" />
             ))}
           </div>
-        ) : recentSessions.length > 0 ? (
+        ) : displayedSessions.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {recentSessions.map((session) => (
+            {displayedSessions.map((session) => (
               <Card
                 key={session._id}
                 className="bg-[#0B0C10] border-white/10 hover:border-[#A39DFF]/35 transition-all rounded-2xl hover:-translate-y-0.5"
@@ -264,12 +309,14 @@ const Dashboard = () => {
                 <CardHeader className="p-4 pb-2">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-[10px] uppercase tracking-wider text-[#A39DFF] font-semibold bg-[#A39DFF]/10 px-2 py-0.5 rounded">
-                      Conversation
+                      {formatDisplayName(session.mode)}
                     </span>
                     <span className="text-[10px] text-[#9CA3AF]">{formatShortDate(session.createdAt)}</span>
                   </div>
 
-                  <CardTitle className="text-lg text-white">Conversation</CardTitle>
+                  <CardTitle className="text-lg text-white">
+                    {session.scenario ? formatDisplayName(session.scenario) : "General Session"}
+                  </CardTitle>
                   <CardDescription className="text-[#9CA3AF]">{formatRelative(session.createdAt)}</CardDescription>
                 </CardHeader>
 
