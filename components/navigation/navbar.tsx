@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { UserMenu } from "./user-menu";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,13 @@ export const Navbar = ({ user }: { user?: any }) => {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 sm:px-14">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo.png"
+            alt="TagalogAI Logo"
+            width={36}
+            height={36}
+            className="object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]"
+          />
           <span className="text-xl font-bold tracking-tight text-white">
             Tagalog<span className="text-indigo-500">AI</span>
           </span>

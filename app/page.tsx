@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -16,8 +17,14 @@ export default function Home() {
       {/* Nav */}
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <Link href="/" className="flex items-center gap-2">
-          <span className="h-8 w-8 rounded-xl primary-gradient shadow-[0_0_18px_rgba(139,92,246,0.35)]" />
-          <span className="text-sm font-semibold tracking-wide">TagalogAI</span>
+          <Image
+            src="/logo.png"
+            alt="TagalogAI Logo"
+            width={36}
+            height={36}
+            className="object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]"
+          />
+          <span className="text-md font-semibold tracking-wide">TagalogAI</span>
         </Link>
 
         <nav className="flex items-center gap-2">
@@ -44,7 +51,7 @@ export default function Home() {
             <Link href="/log-in">Log in</Link>
           </Button>
           <Button asChild className="primary-gradient text-white hover:opacity-90">
-            <Link href="/log-in">Start practicing</Link>
+            <Link href="/dashboard">Start practicing</Link>
           </Button>
         </nav>
       </header>
