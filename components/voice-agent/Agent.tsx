@@ -46,6 +46,7 @@ const Agent = ({ user }: AgentProps) => {
   const [messages, setMessages] = useState<SavedMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [dailyTimeUsed, setDailyTimeUsed] = useState<number>(0);
   const [dailyLimit, setDailyLimit] = useState<number>(600); // Default 10 minutes
   const [callStartTime, setCallStartTime] = useState<number | null>(null);
@@ -174,6 +175,7 @@ const Agent = ({ user }: AgentProps) => {
   }, [])
 
   const handleGenerateFeedback = async (messages: SavedMessage[]) => {
+    setIsGeneratingFeedback(true);
     if (messages.length === 0 && currentCallDuration === 0) {
       console.log('No messages or duration to generate feedback for.');
       router.push('/practice');
@@ -278,6 +280,13 @@ const Agent = ({ user }: AgentProps) => {
 
   return (
     <>
+      {isGeneratingFeedback && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-black/80 backdrop-blur-sm">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white" />
+          <p className="text-sm font-medium text-white/70">Generating your feedback…</p>
+          <p className="text-sm font-medium text-white/70">Pls be patient, AI is expensive so I chose the cheaper model and this might take a while...</p>
+        </div>
+      )}
       <div className="w-full flex justify-center mb-6">
         <div className="bg-zinc-900/50 border border-white/10 rounded-full px-4 py-1.5 flex items-center gap-2">
           <div className={cn("size-2 rounded-full", remainingSeconds < 60 ? "bg-red-500 animate-pulse" : "bg-emerald-500")} />
