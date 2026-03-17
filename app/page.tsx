@@ -6,9 +6,11 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-black text-white overflow-x-hidden">
       {/* Background accents */}
-      <div className="pointer-events-none absolute top-0 right-0 h-130 w-130 rounded-full bg-indigo-500/20 blur-[120px] translate-x-1/2 -translate-y-1/2" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-130 w-130 rounded-full bg-fuchsia-500/20 blur-[120px] -translate-x-1/2 translate-y-1/2" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.08)_0%,transparent_65%)]" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-0 h-130 w-130 rounded-full bg-indigo-500/20 blur-[120px] translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 h-130 w-130 rounded-full bg-fuchsia-500/20 blur-[120px] -translate-x-1/2 translate-y-1/2" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.08)_0%,transparent_65%)]" />
+      </div>
 
       {/* Top border accents */}
       <div className="pointer-events-none absolute top-0 left-0 h-px w-full bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
