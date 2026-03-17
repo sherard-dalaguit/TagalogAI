@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-black text-white overflow-hidden">
+    <div className="relative min-h-screen bg-black text-white overflow-x-hidden">
       {/* Background accents */}
       <div className="pointer-events-none absolute top-0 right-0 h-130 w-130 rounded-full bg-indigo-500/20 blur-[120px] translate-x-1/2 -translate-y-1/2" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-130 w-130 rounded-full bg-fuchsia-500/20 blur-[120px] -translate-x-1/2 translate-y-1/2" />
@@ -191,7 +191,7 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="relative z-10 mx-auto w-full max-w-6xl px-6 py-20">
+      <section id="how-it-works" className="relative z-10 mx-auto w-full max-w-6xl px-6 py-20 scroll-mt-20">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">How TagalogAI helps you improve</h2>
           <p className="mt-4 text-white/65">
@@ -236,7 +236,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section id="features" className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-20">
+      <section id="features" className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-20 scroll-mt-20">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Built like a modern SaaS tutor</h2>
           <p className="mt-4 text-white/65">
@@ -276,7 +276,7 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-24">
+      <section id="faq" className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-24 scroll-mt-20">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">FAQ</h2>
           <p className="mt-4 text-white/65">A few quick answers to common questions.</p>
