@@ -211,7 +211,10 @@ const Agent = ({ user }: AgentProps) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId: user._id,
-        transcript: messages
+        transcript: messages,
+        correctionIntensity: user.preferences.correctionIntensity,
+        taglishMode: user.preferences.taglishMode,
+        preferredTone: user.preferences.preferredTone,
       }),
     });
     const feedbackData = await feedbackRes.json();
@@ -246,12 +249,19 @@ const Agent = ({ user }: AgentProps) => {
           transcript: [],
           correctionIntensity: user.preferences.correctionIntensity,
           taglishMode: user.preferences.taglishMode,
+          preferredTone: user.preferences.preferredTone,
         }),
       });
       const sessionData = await sessionRes.json();
       if (sessionData.success) {
         setSessionId(sessionData.data._id);
-        await vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID);
+        await vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!, {
+        variableValues: {
+          taglishMode: user.preferences.taglishMode ? "enabled" : "disabled",
+          preferredTone: user.preferences.preferredTone ?? "casual",
+          tutorMode: user.preferences.tutorMode ?? "none",
+        },
+      });
       } else {
         console.error("Failed to create session");
         setCallStatus(CallStatus.INACTIVE);

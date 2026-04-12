@@ -23,6 +23,7 @@ interface UserPreferences {
   correctionIntensity: "minimal" | "moderate" | "aggressive";
   taglishMode: boolean;
   preferredTone: "casual" | "polite" | "playful" | "coach";
+  tutorMode: "none" | "implicit" | "inline";
   wallpaper: string;
 }
 
@@ -52,6 +53,7 @@ const SettingsPage = () => {
     correctionIntensity: "moderate",
     taglishMode: false,
     preferredTone: "casual",
+    tutorMode: "none",
     wallpaper: "",
   });
 
@@ -241,6 +243,39 @@ const SettingsPage = () => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Tutor Mode */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-white font-medium flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-[#A39DFF]" />
+                  Tutor Mode
+                </label>
+                <span className="text-xs text-[#A39DFF] bg-[#A39DFF]/10 px-2 py-0.5 rounded-full capitalize font-semibold">
+                  {preferences.tutorMode}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(["none", "implicit", "inline"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setPreferences({ ...preferences, tutorMode: mode })}
+                    className={`py-2 px-3 rounded-xl text-sm font-medium transition-all border ${
+                      preferences.tutorMode === mode
+                        ? "bg-[#A39DFF]/20 border-[#A39DFF] text-white"
+                        : "bg-white/5 border-white/10 text-[#9CA3AF] hover:bg-white/10 hover:border-white/20"
+                    }`}
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-[#9CA3AF]">
+                {preferences.tutorMode === "none" && "Pure natural conversation — no corrections during the session."}
+                {preferences.tutorMode === "implicit" && "The AI quietly uses correct Tagalog in its replies without pointing out your mistakes."}
+                {preferences.tutorMode === "inline" && "The AI gently corrects mistakes mid-conversation so you can learn as you speak."}
+              </p>
             </div>
 
             {/* Background Wallpaper */}

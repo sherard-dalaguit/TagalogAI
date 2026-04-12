@@ -6,11 +6,11 @@ import {runAIReview} from "@/lib/server/runAIReview";
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const { id } = await params;
   const body = await request.json();
-  const { userId, transcript } = await body;
+  const { userId, transcript, correctionIntensity, taglishMode, preferredTone } = await body;
 
   console.log('Transcript used in /api/feedback/[id]: ', transcript)
 
-  const feedback = await runAIReview(userId, id, transcript);
+  const feedback = await runAIReview(userId, id, transcript, correctionIntensity, taglishMode, preferredTone);
 
   await dbConnect();
 

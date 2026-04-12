@@ -8,6 +8,7 @@ export interface IUser {
     correctionIntensity: "minimal" | "moderate" | "aggressive";
     taglishMode: boolean;
     preferredTone?: "casual" | "polite" | "playful" | "coach";
+    tutorMode: "none" | "implicit" | "inline";
     wallpaper: string;
   }
 }
@@ -22,6 +23,7 @@ const UserSchema = new Schema<IUser>(
       correctionIntensity: { type: String, enum: ["minimal", "moderate", "aggressive"], default: "moderate" },
       taglishMode: { type: Boolean, default: false },
       preferredTone: { type: String, enum: ["casual", "polite", "playful", "coach"], default: "casual" },
+      tutorMode: { type: String, enum: ["none", "implicit", "inline"], default: "none" },
       wallpaper: { type: String, default: "" }
     }
   }

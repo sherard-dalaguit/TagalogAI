@@ -38,10 +38,72 @@ const AnalysisOutputSchema = z.object({
  * @param transcript - The full transcript of the conversation.
  * @returns A structured feedback object.
  */
+const taglishModeInstructions: Record<string, string> = {
+  enabled: `
+    # Taglish Mode: Enabled
+    The student uses Taglish (Tagalog + English mixing) intentionally.
+    - Do NOT flag English words as errors unless they block Tagalog flow or reveal the student is avoiding a Tagalog word they should know.
+    - Evaluate them on their Tagalog structure, particles, verb aspects, and grammar — not on the ratio of English.
+    - In improvedPhrases, suggest natural Taglish alternatives, not pure Tagalog rewrites.
+    - In nextPractice drills, frame examples in Taglish as appropriate.
+  `,
+  disabled: `
+    # Taglish Mode: Disabled
+    The student is practicing full Tagalog.
+    - Gently flag over-reliance on English fillers and suggest natural Tagalog alternatives where they exist and are learner-appropriate.
+    - Prioritize helping them build Tagalog vocabulary to replace common English substitutes.
+  `,
+};
+
+const preferredToneInstructions: Record<string, string> = {
+  casual: `
+    # Feedback Tone: Casual
+    Write feedback in a friendly, relaxed tone — like a language-savvy friend texting them notes. Keep it conversational and warm.
+  `,
+  polite: `
+    # Feedback Tone: Polite
+    Write feedback in a respectful, measured tone. Be encouraging but formal. Avoid slang in the feedback prose itself.
+  `,
+  playful: `
+    # Feedback Tone: Playful
+    Write feedback with energy and humor. Use light Tagalog expressions in the feedback text where natural (e.g., "Ay nako!", "Galing!"). Make it fun and motivating.
+  `,
+  coach: `
+    # Feedback Tone: Coach
+    Write feedback like a structured coach. Be direct, goal-oriented, and action-focused. Prioritize clarity over warmth. Use clear targets and concise phrasing.
+  `,
+};
+
+const correctionIntensityInstructions: Record<string, string> = {
+  minimal: `
+    # Correction Intensity: Minimal
+    The student prefers light feedback. Be encouraging and focus only on the 1–2 most impactful patterns.
+    - Keep topRecurringMistakes to a maximum of 2 items.
+    - Keep improvedPhrases to 3–4 items, choosing only the most important rewrites.
+    - Frame every note positively. Lead with what they did well.
+    - Skip minor one-off nitpicks entirely.
+  `,
+  moderate: `
+    # Correction Intensity: Moderate
+    Use the default balanced approach described above. Cover all relevant patterns without overwhelming.
+  `,
+  aggressive: `
+    # Correction Intensity: Aggressive
+    The student wants thorough, direct feedback. Do not soften corrections.
+    - Return the maximum allowed items for topRecurringMistakes (5) and improvedPhrases (8).
+    - Call out every notable pattern, including minor issues like particle placement and naturalness.
+    - Be direct and specific. The student wants to be pushed.
+    - Still base everything on the transcript — do not invent errors.
+  `,
+};
+
 export async function runAIReview(
   userId: string,
   sessionId: string,
-  transcript: ITranscriptMessage[]
+  transcript: ITranscriptMessage[],
+  correctionIntensity: "minimal" | "moderate" | "aggressive" = "moderate",
+  taglishMode: boolean = false,
+  preferredTone: "casual" | "polite" | "playful" | "coach" = "casual"
 ): Promise<Partial<IFeedbackSummary>> {
   const userLines = transcript
     .filter((m) => m.speaker === "user")
@@ -135,6 +197,12 @@ export async function runAIReview(
     # Formatting Rules
     - Return ONLY valid JSON that matches the schema exactly.
     - Do not include markdown, commentary, or extra keys.
+
+    ${correctionIntensityInstructions[correctionIntensity] ?? correctionIntensityInstructions.moderate}
+
+    ${taglishModeInstructions[taglishMode ? "enabled" : "disabled"]}
+
+    ${preferredToneInstructions[preferredTone] ?? preferredToneInstructions.casual}
   `;
 
   const userMessage = {
