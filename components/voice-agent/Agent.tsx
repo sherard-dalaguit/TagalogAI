@@ -211,7 +211,11 @@ const Agent = ({ user }: AgentProps) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId: user._id,
-        transcript: messages,
+        transcript: merged.map((m, i) => ({
+          order: i,
+          speaker: m.role === 'assistant' ? 'ai' : 'user',
+          text: m.content
+        })),
         correctionIntensity: user.preferences.correctionIntensity,
         taglishMode: user.preferences.taglishMode,
         preferredTone: user.preferences.preferredTone,
