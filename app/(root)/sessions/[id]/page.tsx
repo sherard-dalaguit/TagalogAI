@@ -79,22 +79,29 @@ export default function SessionSummaryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 md:p-12 mx-auto">
-      <div className="mb-10 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Session Summary</h1>
-          <p className="text-zinc-400">
-            {session.scenario?.replace("_", " ")} • {new Date(session.createdAt as unknown as string).toLocaleString()}
+    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-12 mx-auto">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold md:text-3xl truncate">Session Summary</h1>
+          <p className="mt-0.5 text-xs text-zinc-500 md:text-sm flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+            {session.scenario && (
+              <span className="capitalize">{session.scenario.replace(/_/g, " ")}</span>
+            )}
+            {session.scenario && <span>·</span>}
+            <span>{new Date(session.createdAt as unknown as string).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
             {session.durationSeconds != null && session.durationSeconds > 0 && (
-              <> • {formatDuration(session.durationSeconds)}</>
+              <>
+                <span>·</span>
+                <span>{formatDuration(session.durationSeconds)}</span>
+              </>
             )}
           </p>
         </div>
-        <button 
+        <button
           onClick={() => router.push("/practice")}
-          className="bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded-full font-medium transition-colors"
+          className="shrink-0 bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 text-sm rounded-full font-medium transition-colors"
         >
-          New Session
+          + New Session
         </button>
       </div>
 
@@ -104,29 +111,33 @@ export default function SessionSummaryPage() {
           {feedback ? (
             <>
               {/* Overview Section */}
-              <section className="bg-gradient-to-br from-indigo-900/20 to-zinc-900 border border-indigo-500/20 rounded-2xl p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <section className="bg-linear-to-br from-indigo-900/20 to-zinc-900 border border-indigo-500/20 rounded-2xl p-5">
+                {/* Level + Confidence row */}
+                <div className="flex items-center justify-between gap-4 mb-4">
                   <div>
-                    <p className="text-xs font-bold text-indigo-400 uppercase tracking-[0.2em] mb-1">Current Assessment</p>
-                    <h2 className="text-3xl font-black text-white">{feedback.overview.estimatedLevel}</h2>
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] mb-1">Current Assessment</p>
+                    <h2 className="text-2xl font-black text-white leading-tight">{feedback.overview.estimatedLevel}</h2>
                   </div>
-                  <div className="flex gap-8">
-                    <div className="text-center">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Confidence</p>
-                      <p className="text-xl font-mono text-zinc-200">{Math.round(feedback.overview.confidence * 100)}%</p>
-                    </div>
-                    <div className="h-10 w-px bg-zinc-800 hidden md:block" />
-                    <div>
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Fluency Notes</p>
-                      <div className="flex flex-wrap gap-2">
-                        {feedback.overview.fluencyNotes.map((note, i) => (
-                          <span key={i} className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full border border-zinc-700">
-                            {note}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Confidence</p>
+                    <p className="text-2xl font-mono font-bold text-zinc-200">{Math.round(feedback.overview.confidence * 100)}%</p>
                   </div>
+                </div>
+
+                {/* Divider */}
+                <div className="h-px w-full bg-indigo-500/15 mb-4" />
+
+                {/* Fluency Notes */}
+                <div>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Fluency Notes</p>
+                  <ul className="space-y-2">
+                    {feedback.overview.fluencyNotes.map((note, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-zinc-300 leading-snug">
+                        <span className="mt-1.5 shrink-0 h-1.5 w-1.5 rounded-full bg-indigo-400/60" />
+                        {note}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </section>
 
