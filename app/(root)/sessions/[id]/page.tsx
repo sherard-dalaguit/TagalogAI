@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { IVoiceSessionDoc } from "@/database/voice-session.model";
 import { IFeedbackSummaryDoc } from "@/database/feedback-summary.model";
+import { Bookmark, BookmarkCheck, Pencil, Trash2 } from "lucide-react";
 
 function formatDuration(totalSeconds: number): string {
   const mins = Math.floor(totalSeconds / 60);
@@ -19,6 +20,10 @@ export default function SessionSummaryPage() {
   const [feedback, setFeedback] = useState<IFeedbackSummaryDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [title, setTitle] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -35,6 +40,8 @@ export default function SessionSummaryPage() {
 
         if (sessionData.success) {
           setSession(sessionData.data);
+          setIsFavorited(!!sessionData.data.isFavorited);
+          setTitle(sessionData.data.title ?? "");
         } else {
           setError("Failed to load session details");
         }
@@ -55,6 +62,36 @@ export default function SessionSummaryPage() {
 
     fetchData();
   }, [id]);
+
+  const saveTitle = async (value: string) => {
+    const trimmed = value.trim();
+    setTitle(trimmed);
+    setIsEditingTitle(false);
+    await fetch(`/api/sessions/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: trimmed }),
+    });
+  };
+
+  const deleteSession = async () => {
+    await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    router.push("/history");
+  };
+
+  const toggleFavorite = async () => {
+    const next = !isFavorited;
+    setIsFavorited(next);
+    try {
+      await fetch(`/api/sessions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFavorited: next }),
+      });
+    } catch {
+      setIsFavorited(!next);
+    }
+  };
 
   if (loading) {
     return (
@@ -82,7 +119,29 @@ export default function SessionSummaryPage() {
     <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-12 mx-auto">
       <div className="mb-6 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold md:text-3xl truncate">Session Summary</h1>
+          {isEditingTitle ? (
+            <input
+              autoFocus
+              className="text-xl font-bold md:text-3xl bg-transparent border-b border-indigo-500 outline-none text-white w-full max-w-xs md:max-w-md"
+              defaultValue={title}
+              placeholder="Session Summary"
+              onBlur={(e) => saveTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+                if (e.key === "Escape") { setIsEditingTitle(false); }
+              }}
+            />
+          ) : (
+            <button
+              onClick={() => setIsEditingTitle(true)}
+              className="group flex items-center gap-2 text-left"
+            >
+              <h1 className="text-xl font-bold md:text-3xl truncate">
+                {title || "Session Summary"}
+              </h1>
+              <Pencil className="h-4 w-4 shrink-0 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+            </button>
+          )}
           <p className="mt-0.5 text-xs text-zinc-500 md:text-sm flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             {session.scenario && (
               <span className="capitalize">{session.scenario.replace(/_/g, " ")}</span>
@@ -97,12 +156,50 @@ export default function SessionSummaryPage() {
             )}
           </p>
         </div>
-        <button
-          onClick={() => router.push("/practice")}
-          className="shrink-0 bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 text-sm rounded-full font-medium transition-colors"
-        >
-          + New Session
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={toggleFavorite}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full font-medium border transition-colors border-white/10 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white"
+            aria-label={isFavorited ? "Remove from saved" : "Save session"}
+          >
+            {isFavorited ? (
+              <BookmarkCheck className="h-4 w-4 text-indigo-400" />
+            ) : (
+              <Bookmark className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">{isFavorited ? "Saved" : "Save"}</span>
+          </button>
+          {isConfirmingDelete ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={deleteSession}
+                className="px-3 py-1.5 text-sm rounded-full font-medium border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+              >
+                Delete?
+              </button>
+              <button
+                onClick={() => setIsConfirmingDelete(false)}
+                className="px-2 py-1.5 text-sm rounded-full text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsConfirmingDelete(true)}
+              className="p-2 rounded-full text-zinc-600 hover:text-red-400 hover:bg-white/5 transition-colors"
+              aria-label="Delete session"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+          <button
+            onClick={() => router.push("/practice")}
+            className="bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 text-sm rounded-full font-medium transition-colors"
+          >
+            + New Session
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -9,6 +9,8 @@ export interface ITranscriptMessage {
 export interface IVoiceSession {
   userId: Types.ObjectId;
 
+  title?: string;
+
   mode?: "conversation" | "beginner" | "repeat_after_me" | "speak_like_a_local" | "assessment";
   scenario?: "daily_life" | "ordering_food" | "directions" | "meeting_someone" | "dating" | "family";
 
@@ -20,6 +22,8 @@ export interface IVoiceSession {
 
   feedbackSummaryId?: Types.ObjectId;
   assessmentId?: Types.ObjectId;
+
+  isFavorited?: boolean;
 
   startedAt?: Date;
   endedAt?: Date;
@@ -42,6 +46,8 @@ const VoiceSessionSchema = new Schema<IVoiceSession>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
 
+    title: { type: String },
+
     mode: { type: String, enum: ["conversation", "beginner", "repeat_after_me", "speak_like_a_local", "assessment"] },
     scenario: { type: String, enum: ["daily_life", "ordering_food", "directions", "meeting_someone", "dating", "family"] },
 
@@ -53,6 +59,8 @@ const VoiceSessionSchema = new Schema<IVoiceSession>(
 
     feedbackSummaryId: { type: Schema.Types.ObjectId, ref: "FeedbackSummary" },
     assessmentId: { type: Types.ObjectId, ref: "Assessment" },
+
+    isFavorited: { type: Boolean, default: false },
 
     startedAt: { type: Date, default: Date.now },
     endedAt: { type: Date },

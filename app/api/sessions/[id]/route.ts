@@ -2,6 +2,7 @@ import {auth} from "@/auth";
 import {NextResponse} from "next/server";
 import dbConnect from "@/lib/mongoose";
 import VoiceSession from "@/database/voice-session.model";
+import FeedbackSummary from "@/database/feedback-summary.model";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const { id } = await params;
@@ -26,7 +27,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const { id } = await params;
   const body = await request.json();
-  const { transcript, endedAt, durationSeconds } = body;
+  const { transcript, endedAt, durationSeconds, isFavorited, title } = body;
 
   const session = await auth();
   const user = session?.user;
@@ -37,9 +38,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   await dbConnect();
 
-  const updateData: any = { transcript };
+  const updateData: any = {};
+  if (transcript !== undefined) updateData.transcript = transcript;
   if (endedAt) updateData.endedAt = new Date(endedAt);
   if (durationSeconds !== undefined) updateData.durationSeconds = durationSeconds;
+  if (isFavorited !== undefined) updateData.isFavorited = isFavorited;
+  if (title !== undefined) updateData.title = title;
 
   const voiceSession = await VoiceSession.findOneAndUpdate(
     { _id: id, userId: user.id },
@@ -66,10 +70,8 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
 
   await dbConnect();
 
-  await VoiceSession.deleteOne({
-    _id: id,
-    userId: user.id
-  });
+  await VoiceSession.deleteOne({ _id: id, userId: user.id });
+  await FeedbackSummary.deleteMany({ sessionId: id });
 
   return NextResponse.json({ success: true });
 }

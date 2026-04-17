@@ -3,13 +3,17 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Mic, ChevronLeft } from "lucide-react";
+import { ArrowRight, Mic, ChevronLeft, Bookmark, BookmarkCheck, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface VoiceSession {
   _id: string;
   createdAt: string;
+  title?: string;
   mode?: string;
   scenario?: string;
+  isFavorited?: boolean;
+  durationSeconds?: number;
 }
 
 function formatDisplayName(str: string | undefined) {
@@ -23,6 +27,13 @@ function formatTime(date: string) {
 
 function formatFullDate(date: string) {
   return new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatDuration(totalSeconds: number): string {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  if (mins === 0) return `${secs}s`;
+  return secs === 0 ? `${mins}m` : `${mins}m ${secs}s`;
 }
 
 type Group = { label: string; sessions: VoiceSession[] };
@@ -46,7 +57,6 @@ function groupSessions(sessions: VoiceSession[]): Group[] {
     } else if (d >= startOfThisWeek) {
       label = "This Week";
     } else {
-      // group by "Month Year"
       label = d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
     }
 
@@ -54,22 +64,21 @@ function groupSessions(sessions: VoiceSession[]): Group[] {
     buckets[label].push(s);
   }
 
-  // Preserve order: Today → Yesterday → This Week → months newest-first
   const priority = ["Today", "Yesterday", "This Week"];
-  const ordered = [
+  return [
     ...priority.filter((l) => buckets[l]).map((l) => ({ label: l, sessions: buckets[l] })),
     ...Object.entries(buckets)
       .filter(([l]) => !priority.includes(l))
       .sort((a, b) => new Date(b[1][0].createdAt).getTime() - new Date(a[1][0].createdAt).getTime())
       .map(([label, sessions]) => ({ label, sessions })),
   ];
-
-  return ordered;
 }
 
 export default function HistoryPage() {
   const [sessions, setSessions] = useState<VoiceSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "saved">("all");
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/sessions")
@@ -88,10 +97,38 @@ export default function HistoryPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const groups = groupSessions(sessions);
+  const deleteSession = async (id: string) => {
+    setSessions((prev) => prev.filter((s) => s._id !== id));
+    setConfirmingDelete(null);
+    await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+  };
+
+  const toggleFavorite = async (id: string, current: boolean | undefined) => {
+    const next = !current;
+    // Optimistic update
+    setSessions((prev) =>
+      prev.map((s) => (s._id === id ? { ...s, isFavorited: next } : s))
+    );
+    try {
+      await fetch(`/api/sessions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFavorited: next }),
+      });
+    } catch {
+      // Revert on failure
+      setSessions((prev) =>
+        prev.map((s) => (s._id === id ? { ...s, isFavorited: current } : s))
+      );
+    }
+  };
+
+  const filteredSessions = filter === "saved" ? sessions.filter((s) => s.isFavorited) : sessions;
+  const groups = groupSessions(filteredSessions);
+  const savedCount = sessions.filter((s) => s.isFavorited).length;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pb-16 pt-2 space-y-8">
+    <div className="max-w-2xl mx-auto px-4 pb-16 pt-2 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/dashboard">
@@ -108,6 +145,43 @@ export default function HistoryPage() {
           )}
         </div>
       </div>
+
+      {/* Filter toggle */}
+      {!loading && sessions.length > 0 && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setFilter("all")}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+              filter === "all"
+                ? "bg-[#A39DFF]/20 text-[#C8C7FF] border border-[#A39DFF]/30"
+                : "text-[#9CA3AF] hover:text-white border border-transparent"
+            )}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter("saved")}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors",
+              filter === "saved"
+                ? "bg-[#A39DFF]/20 text-[#C8C7FF] border border-[#A39DFF]/30"
+                : "text-[#9CA3AF] hover:text-white border border-transparent"
+            )}
+          >
+            <BookmarkCheck className="h-3.5 w-3.5" />
+            Saved
+            {savedCount > 0 && (
+              <span className={cn(
+                "ml-0.5 text-xs rounded-full px-1.5 py-0.5",
+                filter === "saved" ? "bg-[#A39DFF]/30 text-[#C8C7FF]" : "bg-white/10 text-[#9CA3AF]"
+              )}>
+                {savedCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-6">
@@ -137,6 +211,14 @@ export default function HistoryPage() {
             </Link>
           </div>
         </div>
+      ) : filteredSessions.length === 0 ? (
+        <div className="rounded-3xl border border-white/10 bg-[#0B0C10] p-12 text-center">
+          <div className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-[#A39DFF]/15 border border-[#A39DFF]/20 flex items-center justify-center">
+            <Bookmark className="h-5 w-5 text-[#A39DFF]" />
+          </div>
+          <h3 className="text-white text-lg font-semibold">No saved sessions</h3>
+          <p className="text-[#9CA3AF] mt-1">Bookmark sessions you want to revisit by tapping the save icon.</p>
+        </div>
       ) : (
         <div className="space-y-7">
           {groups.map((group) => (
@@ -146,29 +228,73 @@ export default function HistoryPage() {
               </p>
               <div className="rounded-2xl border border-white/10 bg-[#0B0C10] overflow-hidden divide-y divide-white/5">
                 {group.sessions.map((session) => (
-                  <Link
-                    key={session._id}
-                    href={`/sessions/${session._id}`}
-                    className="flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-white/5 transition-colors group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="shrink-0 h-8 w-8 rounded-xl bg-[#A39DFF]/10 border border-[#A39DFF]/20 flex items-center justify-center">
+                  <div key={session._id} className="relative flex items-center group">
+                    <Link
+                      href={`/sessions/${session._id}`}
+                      className="flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition-colors flex-1 min-w-0 pr-32"
+                    >
+                      <div className={cn(
+                        "shrink-0 h-8 w-8 rounded-xl border flex items-center justify-center transition-colors",
+                        session.isFavorited
+                          ? "bg-[#A39DFF]/25 border-[#A39DFF]/40"
+                          : "bg-[#A39DFF]/10 border-[#A39DFF]/20"
+                      )}>
                         <Mic className="h-3.5 w-3.5 text-[#A39DFF]" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-white truncate">
-                          {formatDisplayName(session.scenario)}
+                          {session.title || formatDisplayName(session.scenario)}
                         </p>
                         <p className="text-xs text-[#9CA3AF]">
-                          {formatDisplayName(session.mode)} · {formatTime(session.createdAt)}
+                          {formatDisplayName(session.scenario)} · {formatTime(session.createdAt)}
+                          {session.durationSeconds != null && session.durationSeconds > 0 && (
+                            <> · {formatDuration(session.durationSeconds)}</>
+                          )}
                         </p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    </Link>
+
+                    {/* Right side: date + bookmark + delete + arrow */}
+                    <div className="absolute right-4 flex items-center gap-2 shrink-0">
                       <span className="hidden sm:block text-xs text-[#9CA3AF]">{formatFullDate(session.createdAt)}</span>
-                      <ArrowRight className="h-4 w-4 text-[#9CA3AF] group-hover:text-[#A39DFF] group-hover:translate-x-0.5 transition-all" />
+                      <button
+                        onClick={() => toggleFavorite(session._id, session.isFavorited)}
+                        className="p-1 rounded-lg hover:bg-white/10 transition-colors"
+                        aria-label={session.isFavorited ? "Remove from saved" : "Save session"}
+                      >
+                        {session.isFavorited ? (
+                          <BookmarkCheck className="h-4 w-4 text-[#A39DFF]" />
+                        ) : (
+                          <Bookmark className="h-4 w-4 text-[#9CA3AF] group-hover:text-white transition-colors" />
+                        )}
+                      </button>
+                      {confirmingDelete === session._id ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={(e) => { e.preventDefault(); deleteSession(session._id); }}
+                            className="text-xs font-medium text-red-400 hover:text-red-300 px-1.5 py-1 rounded-lg hover:bg-red-500/10 transition-colors"
+                          >
+                            Delete?
+                          </button>
+                          <button
+                            onClick={(e) => { e.preventDefault(); setConfirmingDelete(null); }}
+                            className="p-1 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-colors text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.preventDefault(); setConfirmingDelete(session._id); }}
+                          className="p-1 rounded-lg hover:bg-white/10 transition-colors"
+                          aria-label="Delete session"
+                        >
+                          <Trash2 className="h-4 w-4 text-[#9CA3AF] hover:text-red-400 transition-colors" />
+                        </button>
+                      )}
+                      <ArrowRight className="h-4 w-4 text-[#9CA3AF] group-hover:text-[#A39DFF] group-hover:translate-x-0.5 transition-all pointer-events-none" />
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
