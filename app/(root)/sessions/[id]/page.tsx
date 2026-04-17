@@ -201,18 +201,33 @@ export default function SessionSummaryPage() {
               {/* Next Practice Section */}
               <section className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-6">
                 <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-300">
-                  <span className="text-indigo-400">🚀</span> Your Next Steps
+                  <span>🚀</span> Your Next Steps
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-4">
                   {feedback.nextPractice.map((np, i) => (
-                    <div key={i} className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl space-y-3">
-                      <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest">{np.goal}</p>
-                      <p className="text-sm text-zinc-300">{np.drill}</p>
-                      <div className="flex flex-wrap gap-2 pt-2">
+                    <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+                      {/* Header row */}
+                      <div className="flex items-start gap-3 p-4 pb-3">
+                        <span className="mt-0.5 shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold">
+                          {i + 1}
+                        </span>
+                        <p className="text-sm font-semibold text-indigo-300 leading-snug">{np.goal}</p>
+                      </div>
+
+                      {/* Drill */}
+                      <div className="mx-4 mb-3 bg-zinc-950/60 rounded-xl px-4 py-3">
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Drill</p>
+                        <p className="text-sm text-zinc-300 leading-relaxed">{np.drill}</p>
+                      </div>
+
+                      {/* Examples */}
+                      <div className="px-4 pb-4 space-y-2">
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Examples</p>
                         {np.examples.map((ex, j) => (
-                          <span key={j} className="text-[10px] bg-zinc-950 text-zinc-500 border border-zinc-800 px-2 py-1 rounded italic">
-                            "{ex}"
-                          </span>
+                          <div key={j} className="flex items-start gap-2">
+                            <span className="mt-1.5 shrink-0 h-1.5 w-1.5 rounded-full bg-indigo-500/50" />
+                            <p className="text-sm text-zinc-400 italic leading-snug">"{ex}"</p>
+                          </div>
                         ))}
                       </div>
                     </div>
