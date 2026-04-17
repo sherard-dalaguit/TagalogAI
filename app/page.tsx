@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Mic2, MessageSquare, TrendingUp, Target, Brain, BarChart2, Zap, HelpCircle, Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
@@ -167,7 +168,9 @@ export default function Home() {
                         82 <span className="text-sm font-normal text-white/50">/ 100</span>
                       </div>
                     </div>
-                    <div className="h-10 w-10 rounded-2xl primary-gradient shadow-[0_0_24px_rgba(139,92,246,0.35)]" />
+                    <div className="h-10 w-10 rounded-2xl primary-gradient shadow-[0_0_24px_rgba(139,92,246,0.35)] flex items-center justify-center">
+                      <Sparkles className="h-5 w-5 text-white/80" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -202,22 +205,34 @@ export default function Home() {
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">1) Speak with an AI agent</div>
+          <div className="relative rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur overflow-hidden">
+            <div className="absolute top-4 right-5 text-5xl font-black text-white/5 select-none leading-none">01</div>
+            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/20">
+              <Mic2 className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-base font-semibold text-white/85">Speak with an AI agent</div>
             <p className="mt-2 text-sm leading-relaxed text-white/60">
               Practice real scenarios (ordering food, introductions, small talk, travel) instead of random flashcards.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">2) Get corrections that make sense</div>
+          <div className="relative rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur overflow-hidden">
+            <div className="absolute top-4 right-5 text-5xl font-black text-white/5 select-none leading-none">02</div>
+            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/20">
+              <MessageSquare className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-base font-semibold text-white/85">Get corrections that make sense</div>
             <p className="mt-2 text-sm leading-relaxed text-white/60">
               Receive clear notes on grammar, vocabulary, and phrasing—plus better alternatives you can reuse.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">3) See your strengths & mistakes</div>
+          <div className="relative rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur overflow-hidden">
+            <div className="absolute top-4 right-5 text-5xl font-black text-white/5 select-none leading-none">03</div>
+            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/20">
+              <TrendingUp className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-base font-semibold text-white/85">See your strengths & mistakes</div>
             <p className="mt-2 text-sm leading-relaxed text-white/60">
               Understand patterns: what you’re doing well, what you keep missing, and what to focus on next session.
             </p>
@@ -248,28 +263,40 @@ export default function Home() {
 
         <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">Scenario-based practice</div>
+            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/20">
+              <Target className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-base font-semibold text-white/85">Scenario-based practice</div>
             <p className="mt-2 text-sm leading-relaxed text-white/60">
               Pick situations you’ll use in real life so your speaking skills transfer immediately.
             </p>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">Personalized coaching notes</div>
+            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/20">
+              <Brain className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-base font-semibold text-white/85">Personalized coaching notes</div>
             <p className="mt-2 text-sm leading-relaxed text-white/60">
               Corrections and suggestions that match your level (and don’t read like a textbook).
             </p>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">Strength + mistake breakdown</div>
+            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/20">
+              <BarChart2 className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-base font-semibold text-white/85">Strength + mistake breakdown</div>
             <p className="mt-2 text-sm leading-relaxed text-white/60">
               Celebrate what you’re doing right, and focus on the few changes that give the biggest gains.
             </p>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">Progress you can feel</div>
+            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/20">
+              <Zap className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-base font-semibold text-white/85">Progress you can feel</div>
             <p className="mt-2 text-sm leading-relaxed text-white/60">
               Consistent practice + consistent review = faster confidence when speaking Tagalog.
             </p>
@@ -285,30 +312,42 @@ export default function Home() {
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">Is it beginner-friendly?</div>
-            <p className="mt-2 text-sm leading-relaxed text-white/60">
-              Yes—start simple, and the feedback will guide you. You’ll get suggested alternatives that fit your level.
+          <div className="rounded-3xl border border-white/10 border-l-2 border-l-indigo-500/40 bg-white/5 p-6 backdrop-blur">
+            <div className="flex items-center gap-2 mb-2">
+              <HelpCircle className="h-4 w-4 shrink-0 text-indigo-400" />
+              <div className="text-base font-semibold text-white/85">Who is this for?</div>
+            </div>
+            <p className="text-sm leading-relaxed text-white/60">
+              Best for intermediate Tagalog speakers and Filipino-Americans reconnecting with the language — people who can hold a basic conversation but want to sound more natural and confident without the pressure of judgment from peers.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">Do I have to use voice?</div>
-            <p className="mt-2 text-sm leading-relaxed text-white/60">
-              The landing page is designed for voice-first practice, but you can expand to text-based practice too if you want.
+          <div className="rounded-3xl border border-white/10 border-l-2 border-l-indigo-500/40 bg-white/5 p-6 backdrop-blur">
+            <div className="flex items-center gap-2 mb-2">
+              <HelpCircle className="h-4 w-4 shrink-0 text-indigo-400" />
+              <div className="text-base font-semibold text-white/85">Is it voice-only?</div>
+            </div>
+            <p className="text-sm leading-relaxed text-white/60">
+              Yes — TagalogAI is built specifically for speaking practice. You talk, the AI responds, and you get feedback on how you actually sound, not just how you write.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">What kind of feedback do I get?</div>
-            <p className="mt-2 text-sm leading-relaxed text-white/60">
+          <div className="rounded-3xl border border-white/10 border-l-2 border-l-indigo-500/40 bg-white/5 p-6 backdrop-blur">
+            <div className="flex items-center gap-2 mb-2">
+              <HelpCircle className="h-4 w-4 shrink-0 text-indigo-400" />
+              <div className="text-base font-semibold text-white/85">What kind of feedback do I get?</div>
+            </div>
+            <p className="text-sm leading-relaxed text-white/60">
               Strengths, mistakes, better phrasing options, and recommended next prompts so you always know what to practice next.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-            <div className="text-sm font-medium text-white/85">How do I start?</div>
-            <p className="mt-2 text-sm leading-relaxed text-white/60">
+          <div className="rounded-3xl border border-white/10 border-l-2 border-l-indigo-500/40 bg-white/5 p-6 backdrop-blur">
+            <div className="flex items-center gap-2 mb-2">
+              <HelpCircle className="h-4 w-4 shrink-0 text-indigo-400" />
+              <div className="text-base font-semibold text-white/85">How do I start?</div>
+            </div>
+            <p className="text-sm leading-relaxed text-white/60">
               Click “Start practicing” to log in and begin a session.
             </p>
           </div>
