@@ -157,23 +157,33 @@ export default function SessionSummaryPage() {
               </section>
 
               {/* Recurring Mistakes */}
-              <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+              <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <span className="text-amber-400">🎯</span> Areas for Improvement
+                  <span>🎯</span> Areas for Improvement
                 </h2>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {feedback.topRecurringMistakes.map((m, i) => (
-                    <div key={i} className="bg-zinc-950/30 rounded-xl p-4 border border-zinc-800/50">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">
+                    <div key={i} className="rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950/40">
+                      {/* Card header */}
+                      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
+                        <span className="shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold">
+                          {i + 1}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
                           {m.category}
                         </span>
                       </div>
-                      <p className="text-zinc-200 font-medium mb-1">{m.mistake}</p>
-                      <p className="text-sm text-zinc-500 mb-3">{m.why}</p>
-                      <div className="bg-zinc-900/80 rounded-lg p-3 border border-zinc-800">
-                        <p className="text-[10px] font-bold text-zinc-600 uppercase mb-1">Recommended Fix</p>
-                        <p className="text-zinc-300 italic">{m.exampleFix}</p>
+
+                      {/* Mistake + why */}
+                      <div className="px-4 pb-3">
+                        <p className="text-base font-semibold text-white leading-snug mb-2">{m.mistake}</p>
+                        <p className="text-sm text-zinc-400 leading-relaxed">{m.why}</p>
+                      </div>
+
+                      {/* Recommended fix */}
+                      <div className="mx-4 mb-4 bg-zinc-900 rounded-xl p-3 border border-zinc-800">
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Recommended Fix</p>
+                        <p className="text-sm text-zinc-300 italic leading-relaxed">{m.exampleFix}</p>
                       </div>
                     </div>
                   ))}
