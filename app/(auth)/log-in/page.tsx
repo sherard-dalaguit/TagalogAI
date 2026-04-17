@@ -1,5 +1,8 @@
 import LogIn from "@/components/log-in";
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Log in" };
 
 export default function LogInPage() {
   return (

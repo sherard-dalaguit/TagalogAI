@@ -10,8 +10,12 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "TagalogAI",
-  description: "TagalogAI is coming soon.",
+  title: {
+    default: "TagalogAI",
+    template: "%s · TagalogAI",
+  },
+  description: "Practice speaking Tagalog with an AI voice agent and get instant feedback.",
+  robots: { index: false, follow: false },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
