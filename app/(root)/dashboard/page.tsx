@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, ArrowRight, Sparkles, Mic, Flame, History, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,7 +42,6 @@ function formatRelative(date: string) {
 
 const Dashboard = () => {
   const [recentSessions, setRecentSessions] = useState<VoiceSession[]>([]);
-  const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dailyUsage, setDailyUsage] = useState({ totalSeconds: 0, dailyLimitSeconds: 600 });
 
@@ -83,7 +82,7 @@ const Dashboard = () => {
     fetchSessions();
   }, []);
 
-  const displayedSessions = showAll ? recentSessions : recentSessions.slice(0, 8);
+  const displayedSessions = recentSessions.slice(0, 4);
   const lastSession = recentSessions[0];
   const totalSessionsLoaded = recentSessions.length;
   const lastPracticedLabel = lastSession ? formatRelative(lastSession.createdAt) : "Not yet";
@@ -279,59 +278,47 @@ const Dashboard = () => {
       </section>
 
       {/* RECENT SESSIONS */}
-      <section className="space-y-5">
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-white">Recent Sessions</h2>
-          {recentSessions.length > 8 && (
-            <Button
-              variant="link"
-              className="text-[#A39DFF] p-0"
-              onClick={() => setShowAll(!showAll)}
-            >
-              {showAll ? "View less" : "View all"}
-            </Button>
+          {recentSessions.length > 0 && (
+            <Link href="/history" className="flex items-center gap-1.5 text-sm text-[#A39DFF] hover:text-[#C8C7FF] transition-colors">
+              View all
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           )}
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-2">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-44 rounded-2xl bg-white/5 border border-white/10 animate-pulse" />
+              <div key={i} className="h-16 rounded-2xl bg-white/5 border border-white/10 animate-pulse" />
             ))}
           </div>
         ) : displayedSessions.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-white/10 bg-[#0B0C10] overflow-hidden divide-y divide-white/5">
             {displayedSessions.map((session) => (
-              <Card
+              <Link
                 key={session._id}
-                className="bg-[#0B0C10] border-white/10 hover:border-[#A39DFF]/35 transition-all rounded-2xl hover:-translate-y-0.5"
+                href={`/sessions/${session._id}`}
+                className="flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-white/5 transition-colors group"
               >
-                <CardHeader className="p-4 pb-2">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[10px] uppercase tracking-wider text-[#A39DFF] font-semibold bg-[#A39DFF]/10 px-2 py-0.5 rounded">
-                      {formatDisplayName(session.mode)}
-                    </span>
-                    <span className="text-[10px] text-[#9CA3AF]">{formatShortDate(session.createdAt)}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="shrink-0 h-8 w-8 rounded-xl bg-[#A39DFF]/10 border border-[#A39DFF]/20 flex items-center justify-center">
+                    <Mic className="h-3.5 w-3.5 text-[#A39DFF]" />
                   </div>
-
-                  <CardTitle className="text-lg text-white">
-                    {session.scenario ? formatDisplayName(session.scenario) : "General Session"}
-                  </CardTitle>
-                  <CardDescription className="text-[#9CA3AF]">{formatRelative(session.createdAt)}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="p-4 pt-2">
-                  <Link href={`/sessions/${session._id}`}>
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-xl border-white/10 bg-white/5 text-[#C9C9D4] hover:text-white hover:bg-white/10 group"
-                    >
-                      View Analysis
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white truncate">
+                      {session.scenario ? formatDisplayName(session.scenario) : "General Session"}
+                    </p>
+                    <p className="text-xs text-[#9CA3AF]">{formatRelative(session.createdAt)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="hidden sm:block text-xs text-[#9CA3AF]">{formatShortDate(session.createdAt)}</span>
+                  <ArrowRight className="h-4 w-4 text-[#9CA3AF] group-hover:text-[#A39DFF] group-hover:translate-x-0.5 transition-all" />
+                </div>
+              </Link>
             ))}
           </div>
         ) : (

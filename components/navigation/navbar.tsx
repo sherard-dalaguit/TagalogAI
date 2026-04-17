@@ -6,11 +6,12 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { UserMenu } from "./user-menu";
 import { cn } from "@/lib/utils";
-import { Home, PlayCircle, Settings, Menu } from "lucide-react";
+import { Home, PlayCircle, Settings, Menu, History } from "lucide-react";
 
 const navLinks = [
   { name: "Home", href: "/dashboard", icon: Home },
   { name: "Practice", href: "/practice", icon: PlayCircle },
+  { name: "History", href: "/history", icon: History },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
