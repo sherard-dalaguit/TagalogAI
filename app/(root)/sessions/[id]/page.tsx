@@ -5,6 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { IVoiceSessionDoc } from "@/database/voice-session.model";
 import { IFeedbackSummaryDoc } from "@/database/feedback-summary.model";
 
+function formatDuration(totalSeconds: number): string {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  if (mins === 0) return `${secs}s`;
+  return secs === 0 ? `${mins}m` : `${mins}m ${secs}s`;
+}
+
 export default function SessionSummaryPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -78,6 +85,9 @@ export default function SessionSummaryPage() {
           <h1 className="text-3xl font-bold mb-2">Session Summary</h1>
           <p className="text-zinc-400">
             {session.scenario?.replace("_", " ")} • {new Date(session.createdAt as unknown as string).toLocaleString()}
+            {session.durationSeconds != null && session.durationSeconds > 0 && (
+              <> • {formatDuration(session.durationSeconds)}</>
+            )}
           </p>
         </div>
         <button 
