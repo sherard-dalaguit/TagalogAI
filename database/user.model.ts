@@ -10,6 +10,7 @@ export interface IUser {
     preferredTone?: "casual" | "polite" | "playful" | "coach";
     tutorMode: "none" | "implicit" | "inline";
     wallpaper: string;
+    tagalogFeedbackStyle?: "natural" | "balanced" | "formal";
   }
 }
 
@@ -24,7 +25,8 @@ const UserSchema = new Schema<IUser>(
       taglishMode: { type: Boolean, default: false },
       preferredTone: { type: String, enum: ["casual", "polite", "playful", "coach"], default: "casual" },
       tutorMode: { type: String, enum: ["none", "implicit", "inline"], default: "none" },
-      wallpaper: { type: String, default: "" }
+      wallpaper: { type: String, default: "" },
+      tagalogFeedbackStyle: { type: String, enum: ["natural", "balanced", "formal"], default: "natural" }
     }
   }
 )

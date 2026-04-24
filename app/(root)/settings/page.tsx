@@ -25,6 +25,7 @@ interface UserPreferences {
   preferredTone: "casual" | "polite" | "playful" | "coach";
   tutorMode: "none" | "implicit" | "inline";
   wallpaper: string;
+  tagalogFeedbackStyle: "natural" | "balanced" | "formal";
 }
 
 const WALLPAPERS = [
@@ -55,6 +56,7 @@ const SettingsPage = () => {
     preferredTone: "casual",
     tutorMode: "none",
     wallpaper: "",
+    tagalogFeedbackStyle: "natural",
   });
 
   useEffect(() => {
@@ -220,6 +222,39 @@ const SettingsPage = () => {
                   }`}
                 />
               </button>
+            </div>
+
+            {/* Tagalog Speech Style */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-white font-medium flex items-center gap-2">
+                  <Languages className="h-4 w-4 text-[#A39DFF]" />
+                  Tagalog Speech Style
+                </label>
+                <span className="text-xs text-[#A39DFF] bg-[#A39DFF]/10 px-2 py-0.5 rounded-full capitalize font-semibold">
+                  {preferences.tagalogFeedbackStyle}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(["natural", "balanced", "formal"] as const).map((style) => (
+                  <button
+                    key={style}
+                    onClick={() => setPreferences({ ...preferences, tagalogFeedbackStyle: style })}
+                    className={`py-2 px-3 rounded-xl text-sm font-medium transition-all border ${
+                      preferences.tagalogFeedbackStyle === style
+                        ? "bg-[#A39DFF]/20 border-[#A39DFF] text-white"
+                        : "bg-white/5 border-white/10 text-[#9CA3AF] hover:bg-white/10 hover:border-white/20"
+                    }`}
+                  >
+                    {style.charAt(0).toUpperCase() + style.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-[#9CA3AF]">
+                {preferences.tagalogFeedbackStyle === "natural" && "Prioritizes how Filipinos actually speak day-to-day — concise, direct, polite with 'po'."}
+                {preferences.tagalogFeedbackStyle === "balanced" && "Explains both textbook-correct and natural phrasing side by side."}
+                {preferences.tagalogFeedbackStyle === "formal" && "Prioritizes complete, polite, grammatically formal Tagalog."}
+              </p>
             </div>
 
             {/* Preferred Tone */}

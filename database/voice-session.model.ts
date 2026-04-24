@@ -19,6 +19,7 @@ export interface IVoiceSession {
   correctionIntensity: "minimal" | "moderate" | "aggressive";
   taglishMode: boolean;
   preferredTone: "casual" | "polite" | "playful" | "coach";
+  tagalogFeedbackStyle?: "natural" | "balanced" | "formal";
 
   feedbackSummaryId?: Types.ObjectId;
   assessmentId?: Types.ObjectId;
@@ -56,6 +57,7 @@ const VoiceSessionSchema = new Schema<IVoiceSession>(
     correctionIntensity: { type: String, enum: ["minimal", "moderate", "aggressive"], default: "moderate", required: true },
     taglishMode: { type: Boolean, default: false, required: true },
     preferredTone: { type: String, enum: ["casual", "polite", "playful", "coach"], default: "casual" },
+    tagalogFeedbackStyle: { type: String, enum: ["natural", "balanced", "formal"], default: "natural" },
 
     feedbackSummaryId: { type: Schema.Types.ObjectId, ref: "FeedbackSummary" },
     assessmentId: { type: Types.ObjectId, ref: "Assessment" },

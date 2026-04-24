@@ -74,6 +74,35 @@ const preferredToneInstructions: Record<string, string> = {
   `,
 };
 
+const tagalogFeedbackStyleInstructions: Record<string, string> = {
+  natural: `
+    # Filipino Speech Style: Natural
+    You are a Filipino conversation coach focused on natural, real-life Tagalog used in the Philippines.
+    - Prioritize conversational naturalness over textbook correctness.
+    - If a sentence is grammatically correct but sounds unnatural or textbooky, flag it clearly and suggest a more commonly used phrasing.
+    - Prefer concise, direct phrasing for everyday scenarios (ordering food, buying items, requesting service).
+    - Recognize that politeness in Filipino comes from tone and particles like "po/opo", not from indirect structures like "Puwede po ba akong...". In transactional contexts, prefer "Pa-[verb] po ng..." or simply "[Item] po."
+    - Avoid forcing formal or textbook phrasing unless the scenario specifically requires formality.
+    - In improvedPhrases, explicitly state whether the original is natural, understandable but textbooky, or unnatural — then suggest a more natural version.
+    - Example: User says "Puwede po ba akong umorder ng Chickenjoy?" → Note it is understandable and polite but textbooky. Suggest: "Pa-order po ng Chickenjoy" or "Isang Chickenjoy po."
+  `,
+  balanced: `
+    # Filipino Speech Style: Balanced
+    Evaluate both textbook correctness and conversational naturalness.
+    - Note if a phrase is grammatically correct and complete.
+    - Also note if it sounds natural/common in everyday Filipino speech.
+    - If the phrase is correct but sounds formal or textbooky, acknowledge both and suggest a more natural alternative alongside the textbook version.
+    - Do not over-correct into deep native slang — keep alternatives learner-appropriate.
+  `,
+  formal: `
+    # Filipino Speech Style: Formal
+    Prioritize grammatically complete, polite, and formal Tagalog phrasing.
+    - Favor complete sentence structures and proper use of "po/opo" in all positions.
+    - Do not push conversational shorthand (e.g., "Pa-order po") over complete structures (e.g., "Puwede po bang umorder...").
+    - This style is appropriate for professional or formal settings.
+  `,
+};
+
 const correctionIntensityInstructions: Record<string, string> = {
   minimal: `
     # Correction Intensity: Minimal
@@ -124,7 +153,8 @@ export async function runAIReview(
   correctionIntensity: "minimal" | "moderate" | "aggressive" = "moderate",
   taglishMode: boolean = false,
   preferredTone: "casual" | "polite" | "playful" | "coach" = "casual",
-  scenarioContext?: { id: string; title: string; aiRole: string; stages?: { label: string; goal: string }[] } | null
+  scenarioContext?: { id: string; title: string; aiRole: string; stages?: { label: string; goal: string }[] } | null,
+  tagalogFeedbackStyle: "natural" | "balanced" | "formal" = "natural"
 ): Promise<Partial<IFeedbackSummary>> {
   const userLines = transcript
     .filter((m) => m.speaker === "user")
@@ -152,7 +182,7 @@ export async function runAIReview(
     2) Markers: ang/ng/sa, plural markers (mga), possessives.
     3) Verb aspects & focus: um-/mag-/ma-/i-/-in, completed vs incompleted vs contemplated.
     4) Pronouns and inclusivity: ako/ko/akin; ikaw/ka/mo; kami/tayo; siya/niya; nila, etc.
-    5) Naturalness: literal translations, awkward word order, overly formal/robotic phrasing.
+    5) Naturalness: literal translations from English, awkward word order, overly formal or textbooky phrasing. In everyday transactional contexts (ordering, buying, requesting), prefer direct conversational phrasing over indirect question structures.
     6) Vocab precision: wrong word choice, false friends, English filler that blocks Tagalog flow.
     
     # Schema Field Requirements (be strict)
@@ -224,6 +254,8 @@ export async function runAIReview(
     ${taglishModeInstructions[taglishMode ? "enabled" : "disabled"]}
 
     ${preferredToneInstructions[preferredTone] ?? preferredToneInstructions.casual}
+
+    ${tagalogFeedbackStyleInstructions[tagalogFeedbackStyle] ?? tagalogFeedbackStyleInstructions.natural}
 
     ${buildScenarioPromptBlock(scenarioContext)}
   `;

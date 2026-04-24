@@ -14,7 +14,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
-  const { mode, scenario, correctionIntensity, taglishMode, preferredTone, transcript } = await request.json();
+  const { mode, scenario, correctionIntensity, taglishMode, preferredTone, tagalogFeedbackStyle, transcript } = await request.json();
 
   // Check daily usage before starting
   const usage = await getDailyUsage(user.id);
@@ -30,6 +30,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     correctionIntensity,
     taglishMode,
     preferredTone,
+    tagalogFeedbackStyle,
     startedAt: new Date(),
   });
 
