@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { IVoiceSessionDoc } from "@/database/voice-session.model";
 import { IFeedbackSummaryDoc } from "@/database/feedback-summary.model";
 import { Bookmark, BookmarkCheck, Pencil, Trash2 } from "lucide-react";
+import { getScenarioById, RoleplayScenario } from "@/lib/roleplay/scenarios";
 
 function formatDuration(totalSeconds: number): string {
   const mins = Math.floor(totalSeconds / 60);
@@ -24,6 +25,7 @@ export default function SessionSummaryPage() {
   const [title, setTitle] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [scenarioMeta, setScenarioMeta] = useState<RoleplayScenario | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -42,6 +44,9 @@ export default function SessionSummaryPage() {
           setSession(sessionData.data);
           setIsFavorited(!!sessionData.data.isFavorited);
           setTitle(sessionData.data.title ?? "");
+          if (sessionData.data.mode === "roleplay" && sessionData.data.scenario) {
+            setScenarioMeta(getScenarioById(sessionData.data.scenario) ?? null);
+          }
         } else {
           setError("Failed to load session details");
         }
@@ -144,7 +149,9 @@ export default function SessionSummaryPage() {
           )}
           <p className="mt-0.5 text-xs text-zinc-500 md:text-sm flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             {session.scenario && (
-              <span className="capitalize">{session.scenario.replace(/_/g, " ")}</span>
+              <span className="capitalize">
+                {scenarioMeta?.title ?? session.scenario.replace(/_/g, " ")}
+              </span>
             )}
             {session.scenario && <span>·</span>}
             <span>{new Date(session.createdAt as unknown as string).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
@@ -201,6 +208,27 @@ export default function SessionSummaryPage() {
           </button>
         </div>
       </div>
+
+      {session.mode === "roleplay" && scenarioMeta && (
+        <div className="mb-6 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl px-5 py-4 flex items-center gap-4">
+          <div>
+            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Scenario Roleplay</p>
+            <p className="text-sm font-semibold text-white">{scenarioMeta.title}</p>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              You: <span className="text-zinc-300">{scenarioMeta.userRole}</span>
+              &nbsp;·&nbsp;
+              AI: <span className="text-zinc-300">{scenarioMeta.aiRole}</span>
+            </p>
+          </div>
+          <span className={`ml-auto shrink-0 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border ${
+            scenarioMeta.difficulty === "beginner"
+              ? "text-green-400 bg-green-500/10 border-green-500/20"
+              : "text-amber-400 bg-amber-500/10 border-amber-500/20"
+          }`}>
+            {scenarioMeta.difficulty}
+          </span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Feedback */}
@@ -335,7 +363,25 @@ export default function SessionSummaryPage() {
                       {/* Drill */}
                       <div className="mx-4 mb-3 bg-zinc-950/60 rounded-xl px-4 py-3">
                         <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Drill</p>
-                        <p className="text-sm text-zinc-300 leading-relaxed">{np.drill}</p>
+                        {(() => {
+                          const parts = np.drill.split(' - ');
+                          if (parts.length === 1) {
+                            return <p className="text-sm text-zinc-300 leading-relaxed">{np.drill}</p>;
+                          }
+                          return (
+                            <>
+                              <p className="text-sm text-zinc-300 leading-relaxed">{parts[0]}</p>
+                              <ul className="mt-2 space-y-1">
+                                {parts.slice(1).map((part, k) => (
+                                  <li key={k} className="text-sm text-zinc-300 leading-relaxed flex gap-1.5">
+                                    <span className="shrink-0 text-zinc-500">–</span>
+                                    <span>{part}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </>
+                          );
+                        })()}
                       </div>
 
                       {/* Examples */}

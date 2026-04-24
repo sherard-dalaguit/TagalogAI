@@ -4,6 +4,7 @@ import {useRouter} from "next/navigation";
 import Image from "next/image";
 import {cn} from "@/lib/utils";
 import {IUserDoc} from "@/database/user.model";
+import {RoleplayScenario, buildRoleplayContext} from "@/lib/roleplay/scenarios";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -20,6 +21,8 @@ interface SavedMessage {
 
 interface AgentProps {
   user: IUserDoc;
+  practiceMode?: "conversation" | "roleplay" | null;
+  scenario?: RoleplayScenario | null;
 }
 
 function mergeMessages(msgs: SavedMessage[]) {
@@ -39,7 +42,7 @@ function mergeMessages(msgs: SavedMessage[]) {
 }
 
 
-const Agent = ({ user }: AgentProps) => {
+const Agent = ({ user, practiceMode, scenario }: AgentProps) => {
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
@@ -219,6 +222,10 @@ const Agent = ({ user }: AgentProps) => {
         correctionIntensity: user.preferences.correctionIntensity,
         taglishMode: user.preferences.taglishMode,
         preferredTone: user.preferences.preferredTone,
+        scenarioId: scenario?.id ?? undefined,
+        scenarioTitle: scenario?.title ?? undefined,
+        aiRole: scenario?.aiRole ?? undefined,
+        scenarioStages: scenario?.stages ?? undefined,
       }),
     });
     const feedbackData = await feedbackRes.json();
@@ -254,18 +261,23 @@ const Agent = ({ user }: AgentProps) => {
           correctionIntensity: user.preferences.correctionIntensity,
           taglishMode: user.preferences.taglishMode,
           preferredTone: user.preferences.preferredTone,
+          mode: practiceMode ?? "conversation",
+          scenario: scenario?.id ?? undefined,
         }),
       });
       const sessionData = await sessionRes.json();
       if (sessionData.success) {
         setSessionId(sessionData.data._id);
         await vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!, {
-        variableValues: {
-          taglishMode: user.preferences.taglishMode ? "enabled" : "disabled",
-          preferredTone: user.preferences.preferredTone ?? "casual",
-          tutorMode: user.preferences.tutorMode ?? "none",
-        },
-      });
+          variableValues: {
+            taglishMode: user.preferences.taglishMode ? "enabled" : "disabled",
+            preferredTone: user.preferences.preferredTone ?? "casual",
+            tutorMode: user.preferences.tutorMode ?? "none",
+            roleplayContext: scenario
+              ? buildRoleplayContext(scenario)
+              : "BASE PERSONA MODE ACTIVE. Apply the instructions below and continue with a general Tagalog conversation practice.",
+          },
+        });
       } else {
         console.error("Failed to create session");
         setCallStatus(CallStatus.INACTIVE);
@@ -310,6 +322,14 @@ const Agent = ({ user }: AgentProps) => {
           </span>
         </div>
       </div>
+
+      {scenario && !isCallInactiveOrFinished && (
+        <div className="w-full flex justify-center mb-4">
+          <span className="text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full">
+            {scenario.title} — You: {scenario.userRole} · AI: {scenario.aiRole}
+          </span>
+        </div>
+      )}
 
       <div className="flex sm:flex-row flex-col gap-10 items-center justify-between w-full">
         <div className="flex items-center justify-center flex-col gap-2 p-7 h-100 bg-linear-to-b from-[#171532] to-[#08090D] rounded-lg border-2 border-[#A39DFF]/50 flex-1 sm:basis-1/2 w-full">

@@ -97,13 +97,34 @@ const correctionIntensityInstructions: Record<string, string> = {
   `,
 };
 
+function buildScenarioPromptBlock(ctx: { title: string; aiRole: string; stages?: { label: string; goal: string }[] } | null | undefined): string {
+  if (!ctx) return "";
+  const stagesBlock = ctx.stages?.length
+    ? `\n    The scenario had these expected stages:\n${ctx.stages.map((s, i) => `      ${i + 1}. ${s.label}: ${s.goal}`).join("\n")}`
+    : "";
+  return `
+    # Roleplay Context
+    This was a Scenario Roleplay session: "${ctx.title}".
+    The AI played the role of: ${ctx.aiRole}.
+    The user was practicing a real-life Filipino interaction end-to-end.
+    The FULL conversation (both speakers) is provided above the user-only lines so you can evaluate scenario flow.${stagesBlock}
+
+    Adjust your feedback to reflect this:
+    - In highlights: explicitly state which stages the user completed and how naturally they handled them. If they missed or skipped a stage, note it.
+    - In fluencyNotes: comment on scenario-specific vocabulary — did they use the right words for this context (e.g., ordering terms, direction vocab)?
+    - In nextPractice: suggest drills directly tied to the scenario type and any stages the user struggled with.
+    - Base ALL claims on the conversation above. Do NOT invent errors or completions not in the transcript.
+  `;
+}
+
 export async function runAIReview(
   userId: string,
   sessionId: string,
   transcript: ITranscriptMessage[],
   correctionIntensity: "minimal" | "moderate" | "aggressive" = "moderate",
   taglishMode: boolean = false,
-  preferredTone: "casual" | "polite" | "playful" | "coach" = "casual"
+  preferredTone: "casual" | "polite" | "playful" | "coach" = "casual",
+  scenarioContext?: { id: string; title: string; aiRole: string; stages?: { label: string; goal: string }[] } | null
 ): Promise<Partial<IFeedbackSummary>> {
   const userLines = transcript
     .filter((m) => m.speaker === "user")
@@ -203,11 +224,19 @@ export async function runAIReview(
     ${taglishModeInstructions[taglishMode ? "enabled" : "disabled"]}
 
     ${preferredToneInstructions[preferredTone] ?? preferredToneInstructions.casual}
+
+    ${buildScenarioPromptBlock(scenarioContext)}
   `;
+
+  const fullConversation = scenarioContext
+    ? transcript.map((m) => `${m.speaker === "user" ? "User" : "AI"}: ${m.text}`).join("\n")
+    : null;
 
   const userMessage = {
     role: "user" as const,
-    content: `Analyze the following user's spoken lines from the conversation transcript:\n\n- ${userLines}`,
+    content: scenarioContext
+      ? `Full conversation (for scenario context):\n${fullConversation}\n\n---\nUser's spoken lines only (focus grammar analysis on these):\n- ${userLines}`
+      : `Analyze the following user's spoken lines from the conversation transcript:\n\n- ${userLines}`,
   };
 
   try {

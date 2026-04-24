@@ -5,12 +5,16 @@ import {runAIReview} from "@/lib/server/runAIReview";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const { id } = await params;
-  const body = await request.json();
-  const { userId, transcript, correctionIntensity, taglishMode, preferredTone } = await body;
+  const { userId, transcript, correctionIntensity, taglishMode, preferredTone,
+          scenarioId, scenarioTitle, aiRole, scenarioStages } = await request.json();
 
   console.log('Transcript used in /api/feedback/[id]: ', transcript)
 
-  const feedback = await runAIReview(userId, id, transcript, correctionIntensity, taglishMode, preferredTone);
+  const scenarioContext = scenarioId
+    ? { id: scenarioId, title: scenarioTitle ?? scenarioId, aiRole: aiRole ?? "AI character", stages: scenarioStages ?? [] }
+    : null;
+
+  const feedback = await runAIReview(userId, id, transcript, correctionIntensity, taglishMode, preferredTone, scenarioContext);
 
   await dbConnect();
 

@@ -11,8 +11,8 @@ export interface IVoiceSession {
 
   title?: string;
 
-  mode?: "conversation" | "beginner" | "repeat_after_me" | "speak_like_a_local" | "assessment";
-  scenario?: "daily_life" | "ordering_food" | "directions" | "meeting_someone" | "dating" | "family";
+  mode?: "conversation" | "beginner" | "repeat_after_me" | "speak_like_a_local" | "assessment" | "roleplay";
+  scenario?: string;
 
   transcript: ITranscriptMessage[];
 
@@ -48,8 +48,8 @@ const VoiceSessionSchema = new Schema<IVoiceSession>(
 
     title: { type: String },
 
-    mode: { type: String, enum: ["conversation", "beginner", "repeat_after_me", "speak_like_a_local", "assessment"] },
-    scenario: { type: String, enum: ["daily_life", "ordering_food", "directions", "meeting_someone", "dating", "family"] },
+    mode: { type: String, enum: ["conversation", "beginner", "repeat_after_me", "speak_like_a_local", "assessment", "roleplay"] },
+    scenario: { type: String },
 
     transcript: { type: [TranscriptMessageSchema], required: true },
 
