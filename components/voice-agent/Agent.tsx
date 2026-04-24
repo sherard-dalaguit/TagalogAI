@@ -5,6 +5,7 @@ import Image from "next/image";
 import {cn} from "@/lib/utils";
 import {IUserDoc} from "@/database/user.model";
 import {RoleplayScenario, buildRoleplayContext} from "@/lib/roleplay/scenarios";
+import TranscriptEditModal from "./TranscriptEditModal";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -13,7 +14,7 @@ enum CallStatus {
   FINISHED = "FINISHED"
 }
 
-interface SavedMessage {
+export interface SavedMessage {
   role: 'user' | 'system' | 'assistant';
   content: string;
   ts: number;
@@ -54,6 +55,10 @@ const Agent = ({ user, practiceMode, scenario }: AgentProps) => {
   const [dailyLimit, setDailyLimit] = useState<number>(600); // Default 10 minutes
   const [callStartTime, setCallStartTime] = useState<number | null>(null);
   const [currentCallDuration, setCurrentCallDuration] = useState<number>(0);
+
+  const [showTranscriptEditor, setShowTranscriptEditor] = useState(false);
+  const [transcriptSnapshot, setTranscriptSnapshot] = useState<SavedMessage[]>([]);
+  const [frozenCallDuration, setFrozenCallDuration] = useState<number>(0);
 
   const MERGE_WINDOW_MS = 1800;
 
@@ -177,9 +182,10 @@ const Agent = ({ user, practiceMode, scenario }: AgentProps) => {
     }
   }, [])
 
-  const handleGenerateFeedback = async (messages: SavedMessage[]) => {
+  const handleGenerateFeedback = async (messages: SavedMessage[], durationOverride?: number) => {
     setIsGeneratingFeedback(true);
-    if (messages.length === 0 && currentCallDuration === 0) {
+    const effectiveDuration = durationOverride ?? currentCallDuration;
+    if (messages.length === 0 && effectiveDuration === 0) {
       console.log('No messages or duration to generate feedback for.');
       router.push('/practice');
       return;
@@ -200,7 +206,7 @@ const Agent = ({ user, practiceMode, scenario }: AgentProps) => {
           text: m.content
         })),
         endedAt: new Date(),
-        durationSeconds: currentCallDuration,
+        durationSeconds: effectiveDuration,
       }),
     });
 
@@ -240,13 +246,19 @@ const Agent = ({ user, practiceMode, scenario }: AgentProps) => {
   }
 
   useEffect(() => {
-    if (callStatus === CallStatus.FINISHED && currentCallDuration > 0) {
-      setDailyTimeUsed(prev => prev + currentCallDuration);
-      setCurrentCallDuration(0); // Reset for next potential call in same session
-      handleGenerateFeedback(messages);
-    } else if (callStatus === CallStatus.FINISHED) {
-      handleGenerateFeedback(messages);
+    if (callStatus !== CallStatus.FINISHED) return;
+
+    const snapshotMsgs = [...messages];
+    const snapshotDuration = currentCallDuration;
+
+    if (snapshotDuration > 0) {
+      setDailyTimeUsed(prev => prev + snapshotDuration);
+      setCurrentCallDuration(0);
     }
+
+    setTranscriptSnapshot(snapshotMsgs);
+    setFrozenCallDuration(snapshotDuration);
+    setShowTranscriptEditor(true);
   }, [callStatus]) // Only trigger on status change
 
   const handleCall = async () => {
@@ -296,6 +308,16 @@ const Agent = ({ user, practiceMode, scenario }: AgentProps) => {
     await vapi.stop();
   }
 
+  const handleTranscriptConfirm = (edited: SavedMessage[]) => {
+    setShowTranscriptEditor(false);
+    handleGenerateFeedback(edited, frozenCallDuration);
+  };
+
+  const handleTranscriptSkip = () => {
+    setShowTranscriptEditor(false);
+    handleGenerateFeedback(transcriptSnapshot, frozenCallDuration);
+  };
+
   const remainingSeconds = Math.max(0, dailyLimit - dailyTimeUsed - currentCallDuration);
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -314,6 +336,13 @@ const Agent = ({ user, practiceMode, scenario }: AgentProps) => {
           <p className="text-sm font-medium text-white/70">Generating your feedback…</p>
           <p className="text-sm font-medium text-white/70">Pls be patient, AI is expensive so I chose the cheaper model and this might take a while...</p>
         </div>
+      )}
+      {showTranscriptEditor && (
+        <TranscriptEditModal
+          messages={transcriptSnapshot}
+          onConfirm={handleTranscriptConfirm}
+          onSkip={handleTranscriptSkip}
+        />
       )}
       <div className="w-full flex justify-center mb-6">
         <div className="bg-zinc-900/50 border border-white/10 rounded-full px-4 py-1.5 flex items-center gap-2">
