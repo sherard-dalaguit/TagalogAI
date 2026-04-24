@@ -76,30 +76,30 @@ export default function PracticePage() {
         </p>
       </div>
 
-      <div className="w-full max-w-4xl mx-auto relative z-10">
+      <div className="w-full max-w-5xl mx-auto relative z-10">
         {/* Phase 1: Mode Selection */}
         {practiceMode === null && (
           <div className="flex flex-col gap-6">
-            <p className="text-zinc-400 text-sm">Choose how you want to practice today.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <p className="text-zinc-300 text-sm md:text-base drop-shadow">Choose how you want to practice today.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
               <button
                 onClick={() => setPracticeMode("conversation")}
-                className="text-left bg-zinc-900/50 border border-white/10 rounded-2xl p-6 hover:border-[#A39DFF]/50 cursor-pointer transition-colors"
+                className="text-left bg-zinc-950/80 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8 hover:border-[#A39DFF]/60 hover:bg-zinc-950/90 cursor-pointer transition-all"
               >
-                <div className="text-2xl mb-3">💬</div>
-                <h2 className="text-lg font-bold text-white mb-1">Free Conversation</h2>
-                <p className="text-sm text-zinc-400">
+                <div className="text-2xl md:text-4xl mb-3 md:mb-4">💬</div>
+                <h2 className="text-lg md:text-2xl font-bold text-white mb-1 md:mb-2">Free Conversation</h2>
+                <p className="text-sm md:text-base text-zinc-300">
                   Open-ended chat with the AI tutor. Practice naturally on any topic.
                 </p>
               </button>
 
               <button
                 onClick={() => setPracticeMode("roleplay")}
-                className="text-left bg-zinc-900/50 border border-white/10 rounded-2xl p-6 hover:border-[#A39DFF]/50 cursor-pointer transition-colors"
+                className="text-left bg-zinc-950/80 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8 hover:border-[#A39DFF]/60 hover:bg-zinc-950/90 cursor-pointer transition-all"
               >
-                <div className="text-2xl mb-3">🎭</div>
-                <h2 className="text-lg font-bold text-white mb-1">Scenario Roleplay</h2>
-                <p className="text-sm text-zinc-400">
+                <div className="text-2xl md:text-4xl mb-3 md:mb-4">🎭</div>
+                <h2 className="text-lg md:text-2xl font-bold text-white mb-1 md:mb-2">Scenario Roleplay</h2>
+                <p className="text-sm md:text-base text-zinc-300">
                   Practice real Filipino interactions — ordering food, asking directions, and more.
                 </p>
               </button>
@@ -113,11 +113,11 @@ export default function PracticePage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setPracticeMode(null)}
-                className="text-sm text-zinc-400 hover:text-white transition-colors"
+                className="text-sm md:text-base text-zinc-300 hover:text-white transition-colors drop-shadow"
               >
                 ← Back
               </button>
-              <p className="text-zinc-400 text-sm">Pick a scenario to practice.</p>
+              <p className="text-zinc-300 text-sm md:text-base drop-shadow">Pick a scenario to practice.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -125,10 +125,10 @@ export default function PracticePage() {
                 <button
                   key={s.id}
                   onClick={() => setSelectedScenario(s)}
-                  className="text-left bg-zinc-900/50 border border-white/10 rounded-2xl p-5 hover:border-[#A39DFF]/50 cursor-pointer transition-colors flex flex-col gap-2"
+                  className="text-left bg-zinc-950/80 backdrop-blur-md border border-white/20 rounded-2xl p-5 md:p-6 hover:border-[#A39DFF]/60 hover:bg-zinc-950/90 cursor-pointer transition-all flex flex-col gap-2"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-bold text-white leading-snug">{s.title}</h3>
+                    <h3 className="text-sm md:text-base font-bold text-white leading-snug">{s.title}</h3>
                     <span
                       className={`shrink-0 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
                         s.difficulty === "beginner"
@@ -139,8 +139,8 @@ export default function PracticePage() {
                       {s.difficulty}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400 leading-snug">{s.tagline}</p>
-                  <p className="text-[11px] text-zinc-500 mt-auto">AI: {s.aiRole}</p>
+                  <p className="text-xs md:text-sm text-zinc-300 leading-snug">{s.tagline}</p>
+                  <p className="text-[11px] md:text-xs text-zinc-400 mt-auto">AI: {s.aiRole}</p>
                 </button>
               ))}
             </div>
